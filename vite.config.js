@@ -13,19 +13,18 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:8000', // Ajusta al puerto donde corre tu backend local
+          target: 'http://localhost:8000', // backend local
           changeOrigin: true,
           secure: false,
         },
       },
     },
     build: {
-      outDir: 'dist', // deja en dist/ como ahora
-      assetsDir: 'assets', // los assets irán a dist/assets/
+      outDir: 'dist',
+      assetsDir: 'assets',
       emptyOutDir: true,
       rollupOptions: {
         output: {
-          // Evita chunks enormes y mejora cacheo
           manualChunks(id) {
             if (id.includes('node_modules')) {
               return 'vendor';
@@ -34,6 +33,6 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    base: mode === 'production' ? '/static/' : '/', // ✅ en producción Django servirá los assets desde /static/
+    base: './', // 👈 rutas relativas para Render
   };
 });
