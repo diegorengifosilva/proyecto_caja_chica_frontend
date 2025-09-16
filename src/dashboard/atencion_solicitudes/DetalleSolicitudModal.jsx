@@ -4,7 +4,8 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import EventBus from "@/components/EventBus"; // 👈 Importado aquí
+import EventBus from "@/components/EventBus";
+import { User, Tag, DollarSign, WalletMinimal, Calendar, BadgeAlert, Landmark, Hash, MessageCircleWarning } from "lucide-react";
 
 export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided }) {
   const { authUser: user, logout } = useAuth();
@@ -110,40 +111,67 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
         ) : (
           <>
             <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100 text-center md:text-left">
-              Solicitud #{solicitud?.numero_solicitud}
+              Solicitud {solicitud?.numero_solicitud}
             </h2>
 
             {/* Datos principales */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 text-sm sm:text-base">
-              <div className="space-y-1">
-                <p>
-                  <strong>Solicitante:</strong>{" "}
+              <div className="space-y-2">
+                <p className="flex items-center gap-1">
+                  <User className="w-4 h-4 text-gray-800" />
+                  <span className="font-semibold">Solicitante:</span>{" "}
                   {solicitud?.solicitante_nombre || solicitud?.solicitante || "—"}
                 </p>
-                <p><strong>Tipo:</strong> {solicitud?.tipo_solicitud || "—"}</p>
-                <p>
-                  <strong>Monto S/:</strong>{" "}
+                <p className="flex items-center gap-1">
+                  <Tag className="w-4 h-4 text-gray-800" />
+                  <span className="font-semibold">Tipo:</span>{" "}
+                  {solicitud?.tipo_solicitud || "—"}
+                </p>
+                <p className="flex items-center gap-1">
+                  <WalletMinimal className="w-4 h-4 text-gray-800" />
+                  <span className="font-semibold">Monto S/:</span>{" "}
                   {(Number(solicitud?.total_soles ?? 0) || 0).toFixed(2)}
                 </p>
-                <p>
-                  <strong>Monto $:</strong>{" "}
+                <p className="flex items-center gap-1">
+                  <DollarSign className="w-4 h-4 text-gray-800" />
+                  <span className="font-semibold">Monto $:</span>{" "}
                   {(Number(solicitud?.total_dolares ?? 0) || 0).toFixed(2)}
                 </p>
               </div>
-              <div className="space-y-1">
-                <p>
-                  <strong>Fecha:</strong>{" "}
-                  {solicitud?.fecha ? new Date(solicitud.fecha).toLocaleDateString("es-PE") : "—"}
+
+              <div className="space-y-2">
+                <p className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4 text-gray-800" />
+                  <span className="font-semibold">Fecha:</span>{" "}
+                  {solicitud?.fecha
+                    ? new Date(solicitud.fecha).toLocaleDateString("es-PE")
+                    : "—"}
                 </p>
-                <p><strong>Estado actual:</strong> {solicitud?.estado || "—"}</p>
-                {solicitud?.banco && <p><strong>Banco:</strong> {solicitud.banco}</p>}
-                {solicitud?.numero_cuenta && <p><strong>N° Cuenta:</strong> {solicitud.numero_cuenta}</p>}
+                <p className="flex items-center gap-1">
+                  <BadgeAlert className="w-4 h-4 text-gray-800" />
+                  <span className="font-semibold">Estado actual:</span>{" "}
+                  {solicitud?.estado || "—"}
+                </p>
+                {solicitud?.banco && (
+                  <p className="flex items-center gap-1">
+                    <Landmark className="w-4 h-4 text-gray-800" />
+                    <span className="font-semibold">Banco:</span> {solicitud.banco}
+                  </p>
+                )}
+                {solicitud?.numero_cuenta && (
+                  <p className="flex items-center gap-1">
+                    <Hash className="w-4 h-4 text-gray-800" />
+                    <span className="font-semibold">N° Cuenta:</span>{" "}
+                    {solicitud.numero_cuenta}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Comentarios */}
             <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">
+              <label className="mb-2 font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                <MessageCircleWarning className="w-4 h-4 text-gray-700" />
                 Comentario del revisor (opcional)
               </label>
               <textarea

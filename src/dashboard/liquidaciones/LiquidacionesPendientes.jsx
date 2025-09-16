@@ -1,39 +1,23 @@
 // src/dashboard/liquidaciones/LiquidacionesPendientes.jsx
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  FileText,
-  FolderKanban,
-  DollarSign,
-  Clock,
-  ChartBarDecreasing,
-  ChartColumnIncreasing,
-} from "lucide-react";
+import { FileText, FolderKanban, DollarSign, Clock, ChartBarDecreasing, ChartColumnIncreasing } from "lucide-react";
 import PresentarDocumentacionModal from "./PresentarDocumentacionModal";
 import axios from "@/services/api";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import {
-  TYPE_COLORS,
-  TIPO_SOLICITUD_CLASSES,
-  STATE_CLASSES,
-} from "@/components/ui/colors";
+import { useAuth } from "@/context/AuthContext";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { TYPE_COLORS, TIPO_SOLICITUD_CLASSES, STATE_CLASSES } from "@/components/ui/colors";
 import KpiCard from "@/components/ui/KpiCard";
 import Table from "@/components/ui/table";
 import ChartWrapped, { tooltipFormatter } from "@/components/ui/ChartWrapped";
 import EventBus from "@/components/EventBus";
 
 export default function LiquidacionesPendientes() {
+  const { authUser: user, logout } = useAuth();
+
   const [liquidaciones, setLiquidaciones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [filtroSolicitante, setFiltroSolicitante] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("");
@@ -42,73 +26,99 @@ export default function LiquidacionesPendientes() {
   const [selectedSolicitud, setSelectedSolicitud] = useState(null);
   const [showPresentarModal, setShowPresentarModal] = useState(false);
 
-  // === Cargar datos ===
-  useEffect(() => {
-    fetchLiquidaciones();
-
-    EventBus.on("liquidacion_actualizada", fetchLiquidaciones);
-    return () => EventBus.off("liquidacion_actualizada", fetchLiquidaciones);
-  }, []);
-
-  const fetchLiquidaciones = async () => {
+  // -------------------------------
+  // Fetch liquidaciones pendientes
+  // -------------------------------
+  const fetchLiquidaciones = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const token = localStorage.getItem("access_token"); // Asegúrate que tu JWT esté guardado aquí
-      const res = await axios.get("/boleta/liquidaciones_pendientes/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const token = localStorage.getItem("access_token");
+      const { data } = await axios.get("/boleta/liquidaciones_pendientes/", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setLiquidaciones(res.data);
-    } catch (err) {
-      console.error("Error cargando liquidaciones pendientes:", err);
+
+      console.log("✅ Liquidaciones pendientes raw:", data);
+
+      // Limpiar posibles correos en el nombre del solicitante
+      const dataLimpia = data.map((s) => ({
+        ...s,
+        solicitante: s.solicitante?.replace(/\s*<.*?>/, "").trim() || "-",
+      }));
+
+      console.log("✅ Liquidaciones pendientes limpias:", dataLimpia);
+      setLiquidaciones(dataLimpia);
+    } catch (e) {
+      console.error("Error cargando solicitudes pendientes:", e);
+      setError(
+        e?.response?.data?.detail || 
+        "No se pudieron cargar las liquidaciones pendientes."
+      );
+      if (e?.response?.status === 401) logout();
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout]);
 
-  // === Lista de solicitantes únicos ===
+  // -------------------------------
+  // EventBus: refrescar al recibir eventos
+  // -------------------------------
+  useEffect(() => {
+    EventBus.on("solicitudAtendida", fetchLiquidaciones);
+    EventBus.on("solicitudRechazada", fetchLiquidaciones);
+
+    return () => {
+      EventBus.off("solicitudAtendida", fetchLiquidaciones);
+      EventBus.off("solicitudRechazada", fetchLiquidaciones);
+    };
+  }, [fetchLiquidaciones]);
+
+  // -------------------------------
+  // Fetch inicial
+  // -------------------------------
+  useEffect(() => {
+    fetchLiquidaciones();
+  }, [fetchLiquidaciones]);
+
+  // -------------------------------
+  // Lista de solicitantes únicos
+  // -------------------------------
   const solicitantes = useMemo(() => {
-    const unique = new Set(liquidaciones.map((s) => s.solicitante_nombre));
+    const unique = new Set(liquidaciones.map((l) => l.solicitante));
     return Array.from(unique);
   }, [liquidaciones]);
 
-  // === Filtro principal para la tabla ===
+  // -------------------------------
+  // Filtro principal para la tabla
+  // -------------------------------
   const solicitudesFiltradas = useMemo(() => {
-    return liquidaciones.filter((s) => {
+    return liquidaciones.filter((l) => {
       const matchSearch =
-        s.solicitante_nombre?.toLowerCase().includes(search.toLowerCase()) ||
-        s.numero_solicitud.toString().includes(search);
+        l.solicitante.toLowerCase().includes(search.toLowerCase()) ||
+        l.numero_solicitud.toString().includes(search);
 
       const matchSolicitante =
-        filtroSolicitante === "" || s.solicitante_nombre === filtroSolicitante;
+        filtroSolicitante === "" || l.solicitante === filtroSolicitante;
 
-      const matchTipo = filtroTipo === "" || s.tipo_solicitud === filtroTipo;
+      const matchTipo = filtroTipo === "" || l.tipo_solicitud === filtroTipo;
 
       const matchFecha =
-        (!fechaInicio || new Date(s.fecha) >= new Date(fechaInicio)) &&
-        (!fechaFin || new Date(s.fecha) <= new Date(fechaFin));
+        (!fechaInicio || new Date(l.fecha) >= new Date(fechaInicio)) &&
+        (!fechaFin || new Date(l.fecha) <= new Date(fechaFin));
 
       return matchSearch && matchSolicitante && matchTipo && matchFecha;
     });
-  }, [
-    liquidaciones,
-    search,
-    filtroSolicitante,
-    filtroTipo,
-    fechaInicio,
-    fechaFin,
-  ]);
+  }, [liquidaciones, search, filtroSolicitante, filtroTipo, fechaInicio, fechaFin]);
 
   // === KPIs ===
   const stats = useMemo(() => {
     const total = solicitudesFiltradas.length;
     const totalSoles = solicitudesFiltradas.reduce(
-      (sum, l) => sum + (l.monto_soles || 0),
+      (sum, l) => sum + (l.total_soles || 0),
       0
     );
     const totalDolares = solicitudesFiltradas.reduce(
-      (sum, l) => sum + (l.monto_dolares || 0),
+      (sum, l) => sum + (l.total_dolares || 0),
       0
     );
     const promedio = total ? (totalSoles / total).toFixed(2) : 0;
@@ -122,26 +132,34 @@ export default function LiquidacionesPendientes() {
         acc[l.tipo_solicitud] = (acc[l.tipo_solicitud] || 0) + 1;
         return acc;
       }, {})
-    ).map(([tipo, value]) => ({ name: tipo, value }));
+    ).map(([tipo_solicitud, value]) => ({ name: tipo_solicitud, value }));
   }, [solicitudesFiltradas]);
 
   const dataMontoPorTipo = useMemo(() => {
     return Object.entries(
       solicitudesFiltradas.reduce((acc, l) => {
-        acc[l.tipo_solicitud] = (acc[l.tipo_solicitud] || 0) + (l.monto_soles || 0);
+        acc[l.tipo_solicitud] = (acc[l.tipo_solicitud] || 0) + (l.total_soles || 0);
         return acc;
       }, {})
-    ).map(([tipo, value]) => ({ name: tipo, value: Number(value.toFixed(2)) }));
+    ).map(([tipo, value]) => ({
+      name: tipo,
+      value: Number(value.toFixed(2)),
+    }));
   }, [solicitudesFiltradas]);
 
-  // === Acción en tabla ===
-  const handleAccion = (solicitud) => {
+  const handleAccion = (id, accion, solicitud) => {
     setSelectedSolicitud(solicitud);
-    setShowPresentarModal(true);
+    if (accion === "Ver Detalle") {
+      setShowDocumentoModal(true);
+      setOcrData(solicitud);
+    } else {
+      setShowPresentarModal(true);
+    }
   };
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
+
       {/* Header */}
       <div className="flex justify-center md:justify-start items-center mb-4">
         <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-black">
@@ -156,12 +174,20 @@ export default function LiquidacionesPendientes() {
           { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
           { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
           { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
-        ].map((kpi, idx) => <KpiCard key={idx} {...kpi} />)}
+        ].map((kpi, idx) => (
+          <KpiCard key={idx} {...kpi} />
+        ))}
       </div>
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-        <ChartWrapped title="Montos por Tipo de Solicitud (S/.)" icon={<ChartBarDecreasing className="w-4 h-4" />} className="h-72" tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}>
+        {/* Montos por Tipo de Solicitud */}
+        <ChartWrapped
+          title="Montos por Tipo de Solicitud (S/.)"
+          icon={<ChartBarDecreasing className="w-4 h-4" />}
+          className="h-72"
+          tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataMontoPorTipo} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -177,7 +203,13 @@ export default function LiquidacionesPendientes() {
           </ResponsiveContainer>
         </ChartWrapped>
 
-        <ChartWrapped title="Distribución por Tipo" icon={<ChartColumnIncreasing className="w-4 h-4" />} className="h-72" tooltipFormatter={tooltipFormatter}>
+        {/* Distribución por Tipo */}
+        <ChartWrapped
+          title="Distribución por Tipo"
+          icon={<ChartColumnIncreasing className="w-4 h-4" />}
+          className="h-72"
+          tooltipFormatter={tooltipFormatter} // Genérico
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataTipo}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
@@ -194,27 +226,127 @@ export default function LiquidacionesPendientes() {
         </ChartWrapped>
       </div>
 
+      {/* Filtros */}
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+          {/* Solicitante */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
+            </label>
+            <select
+              value={filtroSolicitante}
+              onChange={(e) => setFiltroSolicitante(e.target.value)}
+              className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              <option value="">Todos</option>
+              {solicitantes.map((sol) => (
+                <option key={sol} value={sol}>{sol}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tipo */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
+            </label>
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none"
+            >
+              <option value="">Todos</option>
+              {Object.keys(TYPE_COLORS).map((tipo_solicitud) => (
+                <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Fechas */}
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
+            </label>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <input
+                type="date"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+                className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+              />
+              <span className="text-gray-400 text-xs hidden sm:inline">→</span>
+              <input
+                type="date"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+                className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Tabla */}
       <Table
-        headers={["N° Solicitud","Tipo","Monto (S/.)","Monto ($)","Fecha","Concepto","Estado","Acción"]}
+        headers={[
+          "N° Solicitud",
+          "Tipo",
+          "Monto (S/.)",
+          "Monto ($)",
+          "Fecha",
+          "Concepto",
+          "Estado",
+          "Acción",
+        ]}
         data={solicitudesFiltradas}
-        loading={loading}
         emptyMessage="No hay solicitudes en este estado o rango de fechas."
         renderRow={(s) => (
           <>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-center">{s.numero_solicitud}</td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              <span className={`text-xs px-2 py-1 rounded-full ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.monto_soles ? `S/. ${s.monto_soles}` : "-"}</td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.monto_dolares ? `$ ${s.monto_dolares}` : "-"}</td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.fecha}</td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.concepto_gasto ?? "-"}</td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              <span className={`text-xs px-2 py-1 rounded-full ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-center">
+              {s.numero_solicitud}
             </td>
             <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              <Button variant="outline" size="sm" onClick={() => handleAccion(s)} className="flex items-center gap-1">
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] ||
+                  "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {s.tipo_solicitud}
+              </span>
+            </td>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+              {s.total_soles ? `S/. ${s.total_soles}` : "-"}
+            </td>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+              {s.total_dolares ? `$ ${s.total_dolares}` : "-"}
+            </td>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+              {s.fecha}
+            </td>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+              {s.concepto_gasto ?? "-"}
+            </td>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  STATE_CLASSES[s.estado] ||
+                  "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {s.estado}
+              </span>
+            </td>
+            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  handleAccion(s.id, "Presentar Documentación", s)
+                }
+                className="flex items-center gap-1"
+              >
                 <FileText className="w-4 h-4" /> Presentar
               </Button>
             </td>
@@ -222,7 +354,7 @@ export default function LiquidacionesPendientes() {
         )}
       />
 
-      {/* Modal */}
+      {/* Modals */}
       {showPresentarModal && (
         <PresentarDocumentacionModal
           open={showPresentarModal}
@@ -230,6 +362,8 @@ export default function LiquidacionesPendientes() {
           solicitud={selectedSolicitud}
         />
       )}
+
     </div>
   );
+
 }

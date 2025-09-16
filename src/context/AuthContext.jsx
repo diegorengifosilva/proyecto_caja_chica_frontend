@@ -16,15 +16,20 @@ export const AuthProvider = ({ children }) => {
       setAuthUser(res.data);
       localStorage.setItem("auth_user", JSON.stringify(res.data));
     } catch (err) {
-      console.error("No se pudo obtener usuario actual:", err.response?.data ?? err);
-      logout();
+      console.error("❌ No se pudo obtener usuario actual:", err.response?.status, err);
+
+      // Solo hacemos logout si es 401 (token inválido)
+      if (err.response?.status === 401) {
+        logout();
+      } else {
+        // Si es otro error (CORS, red, etc.), no hacemos logout
+        setAuthUser(null);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-
-  // Carga inicial de authUser
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
     const userData = localStorage.getItem("auth_user");
@@ -37,19 +42,18 @@ export const AuthProvider = ({ children }) => {
           const parsedUser = JSON.parse(userData);
           setAuthUser(parsedUser);
         } catch (err) {
-          console.error("Error al parsear auth_user:", err);
+          console.error("⚠️ Error al parsear auth_user:", err);
           logout();
           return;
         }
       }
-      // Siempre refrescamos info del usuario desde backend
+
       fetchUserFromBackend();
     } else {
       setLoading(false);
     }
   }, []);
 
-  // LOGIN
   const login = async ({ email, password }) => {
     try {
       const res = await api.post("login/", { email, password });
@@ -59,7 +63,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("refresh_token", refresh);
       api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
 
-      // Guardamos info completa del usuario
       localStorage.setItem("auth_user", JSON.stringify(user));
       setAuthUser(user);
 
@@ -70,7 +73,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // REGISTER
   const register = async ({ email, password, nombre, apellido, rol, area }) => {
     try {
       const res = await api.post("register/", { email, password, nombre, apellido, rol, area });
@@ -81,7 +83,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGOUT
   const logout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -91,7 +92,6 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/login";
   };
 
-  // REFRESH TOKEN (por si quieres usarlo manualmente)
   const refreshToken = async () => {
     try {
       const refresh = localStorage.getItem("refresh_token");
@@ -102,7 +102,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("access_token", access);
       api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
 
-      // Refrescamos usuario desde backend
       await fetchUserFromBackend();
     } catch (err) {
       console.error("Error al refrescar token:", err);

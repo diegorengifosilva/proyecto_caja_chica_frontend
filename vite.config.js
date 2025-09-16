@@ -13,9 +13,9 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:8000', // backend local
+          target: 'https://proyecto-caja-chica-api.onrender.com',
           changeOrigin: true,
-          secure: false,
+          secure: true,
         },
       },
     },

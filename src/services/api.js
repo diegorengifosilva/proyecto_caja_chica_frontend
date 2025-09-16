@@ -1,10 +1,13 @@
 // src/services/api.js
 import axios from "axios";
 
+// Detectar API_URL desde .env o fallback a localhost
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/";
+
 // Crear instancia de Axios
 const api = axios.create({
-  baseURL: "http://localhost:8000/api/",
-  withCredentials: true,
+  baseURL: API_URL,
+  withCredentials: false, // 🔑 JWT no necesita cookies
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -14,7 +17,6 @@ const api = axios.create({
 // ===== Request Interceptor =====
 api.interceptors.request.use(
   (config) => {
-    // Tomar access_token del localStorage
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -30,7 +32,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 401 -> intentar refrescar token
     if (
       error.response &&
       error.response.status === 401 &&
@@ -47,19 +48,17 @@ api.interceptors.response.use(
       }
 
       try {
-        // Usar la instancia api para refrescar token
-        const res = await axios.post("http://localhost:8000/api/token/refresh/", {
+        // Refrescar token usando la misma API_URL dinámica
+        const res = await axios.post(`${API_URL}token/refresh/`, {
           refresh: refreshToken,
         });
 
         const newAccess = res.data.access;
 
-        // Guardamos token actualizado
         localStorage.setItem("access_token", newAccess);
         api.defaults.headers.common["Authorization"] = `Bearer ${newAccess}`;
         originalRequest.headers["Authorization"] = `Bearer ${newAccess}`;
 
-        // Reintentamos la solicitud original
         return api(originalRequest);
       } catch (err) {
         console.error("🔴 Error al refrescar token:", err);
