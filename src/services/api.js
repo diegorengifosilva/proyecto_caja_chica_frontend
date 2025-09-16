@@ -1,20 +1,18 @@
 // src/services/api.js
 import axios from "axios";
 
-// Detectar API_URL desde .env o fallback a localhost
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/";
 
-// Crear instancia de Axios
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: false, // 🔑 JWT no necesita cookies
+  withCredentials: false, // JWT en headers, no cookies
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-// ===== Request Interceptor =====
+// Interceptor: añade token a cada request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
@@ -26,33 +24,26 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ===== Response Interceptor =====
+// Interceptor: maneja expiración de token
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  (res) => res,
+  async (err) => {
+    const originalRequest = err.config;
 
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
+    if (err.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
       const refreshToken = localStorage.getItem("refresh_token");
+
       if (!refreshToken) {
-        console.error("⚠️ No hay refresh token");
         localStorage.clear();
-        window.location.href = "/login";
-        return Promise.reject(error);
+        window.location.replace("/login");
+        return Promise.reject(err);
       }
 
       try {
-        // Refrescar token usando la misma API_URL dinámica
         const res = await axios.post(`${API_URL}token/refresh/`, {
           refresh: refreshToken,
         });
-
         const newAccess = res.data.access;
 
         localStorage.setItem("access_token", newAccess);
@@ -60,15 +51,14 @@ api.interceptors.response.use(
         originalRequest.headers["Authorization"] = `Bearer ${newAccess}`;
 
         return api(originalRequest);
-      } catch (err) {
-        console.error("🔴 Error al refrescar token:", err);
+      } catch (e) {
         localStorage.clear();
-        window.location.href = "/login";
-        return Promise.reject(err);
+        window.location.replace("/login");
+        return Promise.reject(e);
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 );
 

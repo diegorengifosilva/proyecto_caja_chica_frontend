@@ -1,7 +1,6 @@
 // src/dashboard/liquidaciones/SubirArchivoModal.jsx
 import React, { useState, useEffect } from "react";
 import { procesarDocumentoOCR } from "@/services/documentoService";
-import api from "@/services/api";
 import { Camera, FileUp, X, CheckCircle, Paperclip, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ export default function SubirArchivoModal({
 
       // 1️⃣ Procesamos OCR
       const datosDetectados = await procesarDocumentoOCR(formData);
-
       console.log("📦 OCR recibido:", datosDetectados);
 
       const totalDetectado = datosDetectados?.total
@@ -66,43 +64,22 @@ export default function SubirArchivoModal({
 
       const totalFinal = totalDetectado || totalManual;
 
-      // 2️⃣ Guardamos en la DB
-      const guardarFormData = new FormData();
-      guardarFormData.append("archivo", archivo);
-      guardarFormData.append("solicitud", idSolicitud);
-      guardarFormData.append("tipo_documento", tipoDocumento);
-      guardarFormData.append("total", totalFinal);
-
-      const response = await api.post(
-        "/api/documentogasto/",
-        guardarFormData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log("✅ Documento guardado en DB:", response.data);
-
-      // 3️⃣ Actualizamos la tabla en frontend
+      // 2️⃣ Enviamos al componente padre para almacenar en memoria
       onProcesado(
         {
           ...datosDetectados,
           total: totalFinal,
-          id: response.data.id, // ID generado en la DB
-        },
-        archivo,
-        tipoDocumento,
-        idSolicitud,
-        tipoSolicitud
+          tipo_documento: tipoDocumento,
+          nombre_archivo: archivo.name,
+          archivo, // lo dejamos en memoria
+        }
       );
 
       onClose();
     } catch (error) {
-      console.error("❌ Error procesando/guardando:", error);
+      console.error("❌ Error procesando OCR:", error);
       setErrorOCR(
-        "No se pudo procesar o guardar el documento. Intenta nuevamente."
+        "No se pudo procesar el documento. Intenta nuevamente."
       );
     } finally {
       setCargando(false);

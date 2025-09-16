@@ -8,23 +8,15 @@ export const AuthProvider = ({ children }) => {
   const [authUser, setAuthUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Función para cargar usuario desde backend
   const fetchUserFromBackend = async () => {
     try {
       const res = await api.get("usuarios/actual/");
-      console.log("Usuario backend:", res.data);
       setAuthUser(res.data);
       localStorage.setItem("auth_user", JSON.stringify(res.data));
     } catch (err) {
       console.error("❌ No se pudo obtener usuario actual:", err.response?.status, err);
-
-      // Solo hacemos logout si es 401 (token inválido)
-      if (err.response?.status === 401) {
-        logout();
-      } else {
-        // Si es otro error (CORS, red, etc.), no hacemos logout
-        setAuthUser(null);
-      }
+      if (err.response?.status === 401) logout();
+      else setAuthUser(null); // no logout si es otro error
     } finally {
       setLoading(false);
     }
@@ -36,22 +28,16 @@ export const AuthProvider = ({ children }) => {
 
     if (accessToken) {
       api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-
       if (userData) {
         try {
-          const parsedUser = JSON.parse(userData);
-          setAuthUser(parsedUser);
-        } catch (err) {
-          console.error("⚠️ Error al parsear auth_user:", err);
+          setAuthUser(JSON.parse(userData));
+        } catch {
           logout();
           return;
         }
       }
-
       fetchUserFromBackend();
-    } else {
-      setLoading(false);
-    }
+    } else setLoading(false);
   }, []);
 
   const login = async ({ email, password }) => {
@@ -61,25 +47,14 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem("auth_user", JSON.stringify(user));
       api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
 
-      localStorage.setItem("auth_user", JSON.stringify(user));
       setAuthUser(user);
-
       return { success: true };
     } catch (err) {
       console.error("Error de inicio de sesión:", err);
       return { success: false, message: "Credenciales inválidas o servidor no disponible" };
-    }
-  };
-
-  const register = async ({ email, password, nombre, apellido, rol, area }) => {
-    try {
-      const res = await api.post("register/", { email, password, nombre, apellido, rol, area });
-      return { success: true, data: res.data };
-    } catch (err) {
-      console.error("Error de registro:", err);
-      return { success: false, message: "No se pudo registrar el usuario" };
     }
   };
 
@@ -95,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   const refreshToken = async () => {
     try {
       const refresh = localStorage.getItem("refresh_token");
-      if (!refresh) throw new Error("No se encontró refresh token");
+      if (!refresh) throw new Error("No refresh token");
 
       const res = await api.post("token/refresh/", { refresh });
       const { access } = res.data;
@@ -111,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ authUser, setAuthUser, login, register, logout, refreshToken, loading }}
+      value={{ authUser, setAuthUser, login, logout, refreshToken, loading }}
     >
       {children}
     </AuthContext.Provider>
