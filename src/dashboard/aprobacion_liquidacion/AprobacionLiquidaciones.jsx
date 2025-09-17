@@ -4,12 +4,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Check, X, CircleX, CheckCircle, DollarSign, Wallet, FileSearch } from "lucide-react";
+import { Eye, Check, X, CheckCircle, CircleX, DollarSign, Wallet, FileSearch, RefreshCw } from "lucide-react";
 import api from "@/services/api";
 import ConfirmacionModal from "./ConfirmacionModal";
 import DetalleLiquidacionModal from "./LiquidacionDetalleModal";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, PieChart, Pie } from "recharts";
-import { motion } from "framer-motion";
 import "tippy.js/dist/tippy.css";
 import EventBus from "@/components/EventBus";
 import { STATE_CLASSES, STATE_COLORS, TIPO_SOLICITUD_CLASSES, TYPE_COLORS } from "@/components/ui/colors";
@@ -21,6 +20,10 @@ const TASA_CAMBIO = 3.52;
 
 export default function AprobacionLiquidaciones() {
   const { authUser: user, logout } = useAuth();
+
+  // -------------------------------
+  // Estados
+  // -------------------------------
   const [liquidaciones, setLiquidaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -47,7 +50,7 @@ export default function AprobacionLiquidaciones() {
       const { data } = await api.get("/boleta/liquidaciones_pendientes/", {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          destinatario_id: user.id, // Solo las que tienen como destinatario al encargado logueado
+          destinatario_id: user.id,
           estado: "Liquidación enviada para Aprobación",
         },
       });
@@ -62,17 +65,19 @@ export default function AprobacionLiquidaciones() {
   }, [user, logout]);
 
   // -------------------------------
-  // EventBus para refrescar automáticamente
+  // EventBus para refresco automático
   // -------------------------------
   useEffect(() => {
-    EventBus.on("liquidacionPresentada", fetchLiquidaciones);
-    EventBus.on("liquidacionAprobada", fetchLiquidaciones);
-    EventBus.on("liquidacionRechazada", fetchLiquidaciones);
+    const actualizar = () => fetchLiquidaciones();
+
+    EventBus.on("liquidacionPresentada", actualizar);
+    EventBus.on("liquidacionAprobada", actualizar);
+    EventBus.on("liquidacionRechazada", actualizar);
 
     return () => {
-      EventBus.off("liquidacionPresentada", fetchLiquidaciones);
-      EventBus.off("liquidacionAprobada", fetchLiquidaciones);
-      EventBus.off("liquidacionRechazada", fetchLiquidaciones);
+      EventBus.off("liquidacionPresentada", actualizar);
+      EventBus.off("liquidacionAprobada", actualizar);
+      EventBus.off("liquidacionRechazada", actualizar);
     };
   }, [fetchLiquidaciones]);
 
@@ -108,12 +113,16 @@ export default function AprobacionLiquidaciones() {
   // KPIs
   // -------------------------------
   const kpiData = useMemo(() => {
-    const counts = { Aprobado: 0, Rechazado: 0 };
+    const counts = { Pendientes: 0, Aprobadas: 0, Rechazadas: 0 };
     let total = liquidaciones.length;
     let totalSoles = liquidaciones.reduce((acc, l) => acc + l.monto, 0);
-    liquidaciones.forEach(l => { if (counts[l.estado] !== undefined) counts[l.estado]++; });
+    liquidaciones.forEach(l => {
+      if (l.estado === "Liquidación enviada para Aprobación") counts.Pendientes++;
+      if (l.estado === "Aprobado") counts.Aprobadas++;
+      if (l.estado === "Rechazado") counts.Rechazadas++;
+    });
     const totalDolares = totalSoles / TASA_CAMBIO;
-    return { Total: total, Aprobadas: counts.Aprobado, Rechazadas: counts.Rechazado, TotalSoles: totalSoles, TotalDolares: totalDolares };
+    return { Total: total, Pendientes: counts.Pendientes, Aprobadas: counts.Aprobadas, Rechazadas: counts.Rechazadas, TotalSoles: totalSoles, TotalDolares: totalDolares };
   }, [liquidaciones]);
 
   // -------------------------------
@@ -128,7 +137,6 @@ export default function AprobacionLiquidaciones() {
       setDetalleModalOpen(false);
       setActiveRow(selectedLiquidacion.id);
       setTimeout(() => setActiveRow(null), 1500);
-      // Emitir evento global
       EventBus.emit(accion === "aprobar" ? "liquidacionAprobada" : "liquidacionRechazada", res.data);
     } catch (err) {
       console.error(err);
@@ -156,22 +164,25 @@ export default function AprobacionLiquidaciones() {
   if (!Array.isArray(liquidaciones) || liquidaciones.length === 0) return <p className="text-center py-10">No hay liquidaciones pendientes.</p>;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <FileSearch className="w-6 h-6" /> Aprobación de Liquidaciones
         </h1>
+        <button onClick={fetchLiquidaciones} className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
+          <RefreshCw size={18} />
+        </button>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
         {[
           { label: "Total", value: kpiData.Total, gradient: "linear-gradient(135deg, #6366f1cc, #818cf899)", icon: Wallet },
+          { label: "Pendientes", value: kpiData.Pendientes, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: CircleX },
           { label: "Aprobadas", value: kpiData.Aprobadas, gradient: "linear-gradient(135deg, #16a34acc, #22c55e99)", icon: CheckCircle },
           { label: "Rechazadas", value: kpiData.Rechazadas, gradient: "linear-gradient(135deg, #ef4444cc, #f8717199)", icon: CircleX },
           { label: "Total S/", value: kpiData.TotalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: Wallet },
-          { label: "Total $", value: kpiData.TotalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign },
         ].map(kpi => <KpiCard key={kpi.label} {...kpi} decimals={kpi.label.includes("$") ? 2 : 0} />)}
       </div>
 
@@ -236,7 +247,7 @@ export default function AprobacionLiquidaciones() {
             <>
               <td>{liq.solicitante}</td>
               <td><Badge className={`${TIPO_SOLICITUD_CLASSES[liq.tipo] || "bg-gray-200 text-gray-700"} px-3 py-1 rounded-full`}>{liq.tipo}</Badge></td>
-              <td>{liq.fecha}</td>
+              <td>{liq.fecha ? new Date(liq.fecha).toLocaleDateString("es-PE") : "-"}</td>
               <td>S/ {formatSoles(liq.monto)}</td>
               <td>$ {formatDolares(liq.monto)}</td>
               <td><Badge className={`${STATE_CLASSES[liq.estado] || "bg-gray-200 text-gray-700"} px-3 py-1 rounded-full`}>{liq.estado}</Badge></td>

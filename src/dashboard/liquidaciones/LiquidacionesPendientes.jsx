@@ -108,7 +108,7 @@ export default function LiquidacionesPendientes() {
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
           {kpis.map((kpi) => (
             <div key={kpi.label} className="flex-1 min-w-0">
               <KpiCard
@@ -127,7 +127,6 @@ export default function LiquidacionesPendientes() {
         {/* Gráficos */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
 
-          {/* Montos por Tipo */}
           <ChartWrapped
             title="Montos por Tipo de Solicitud (S/.)"
             icon={<ChartBarDecreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
@@ -147,7 +146,6 @@ export default function LiquidacionesPendientes() {
             </ResponsiveContainer>
           </ChartWrapped>
 
-          {/* Distribución por Tipo */}
           <ChartWrapped
             title="Distribución por Tipo"
             icon={<ChartColumnIncreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
@@ -208,26 +206,26 @@ export default function LiquidacionesPendientes() {
           </div>
         </div>
 
-        {/* Tabla scrollable */}
-        <div className="overflow-x-auto w-full max-h-[70vh]">
+        {/* Tabla scrollable y responsive */}
+        <div className="overflow-x-auto w-full flex-1">
           <Table
             headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
             data={solicitudesFiltradas}
             emptyMessage="No hay solicitudes en este estado o rango de fechas."
             renderRow={(s) => (
               <>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base font-semibold">{s.numero_solicitud}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base font-semibold whitespace-nowrap">{s.numero_solicitud}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">
                   <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-xs md:text-sm ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
                 </td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.fecha}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">{s.fecha}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base truncate max-w-[120px] sm:max-w-[160px] md:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">
                   <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-xs md:text-sm ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
                 </td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">
                   <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-2">
                     <FileText className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" /> Presentar
                   </Button>
