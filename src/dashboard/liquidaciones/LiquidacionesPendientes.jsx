@@ -89,25 +89,27 @@ export default function LiquidacionesPendientes() {
     setShowPresentarModal(true);
   };
 
+  const kpis = [
+    { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
+    { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
+    { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
+    { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
+  ];
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
       <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
 
         {/* Header */}
-        <div className="flex justify-center md:justify-start items-center mb-4 px-1">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 text-black">
-            <FolderKanban className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7" /> Liquidaciones Pendientes
+        <div className="flex justify-center md:justify-start items-center mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold flex items-center gap-2 text-black">
+            <FolderKanban className="w-5 sm:w-6 md:w-7 lg:w-8 h-5 sm:h-6 md:h-7 lg:h-8" /> Liquidaciones Pendientes
           </h2>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
-          {[
-            { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
-            { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
-            { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
-            { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
-          ].map((kpi) => (
+          {kpis.map((kpi) => (
             <div key={kpi.label} className="flex-1 min-w-0">
               <KpiCard
                 label={kpi.label}
@@ -124,11 +126,13 @@ export default function LiquidacionesPendientes() {
 
         {/* Gráficos */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
+
+          {/* Montos por Tipo */}
           <ChartWrapped
             title="Montos por Tipo de Solicitud (S/.)"
-            icon={<ChartBarDecreasing className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
-            className="w-full h-56 sm:h-64 md:h-72 lg:h-80 flex-1"
+            icon={<ChartBarDecreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
             tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
+            className="flex-1 w-full h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dataMontoPorTipo} layout="vertical" margin={{ left: 10 }}>
@@ -136,18 +140,19 @@ export default function LiquidacionesPendientes() {
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={80} />
                 <Tooltip formatter={(val) => `S/ ${val.toLocaleString()}`} />
-                <Bar dataKey="value" barSize={30}>
+                <Bar dataKey="value" barSize={25}>
                   {dataMontoPorTipo.map((entry, i) => <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </ChartWrapped>
 
+          {/* Distribución por Tipo */}
           <ChartWrapped
             title="Distribución por Tipo"
-            icon={<ChartColumnIncreasing className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
-            className="w-full h-56 sm:h-64 md:h-72 lg:h-80 flex-1"
+            icon={<ChartColumnIncreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
             tooltipFormatter={tooltipFormatter}
+            className="flex-1 w-full h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dataTipo}>
@@ -155,17 +160,19 @@ export default function LiquidacionesPendientes() {
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
                 <Tooltip formatter={tooltipFormatter} />
-                <Bar dataKey="value" barSize={30}>
+                <Bar dataKey="value" barSize={25}>
                   {dataTipo.map((entry, i) => <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </ChartWrapped>
+
         </div>
 
         {/* Filtros */}
-        <div className="bg-white p-2 sm:p-3 md:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 items-end">
+            {/* Solicitante */}
             <div className="flex flex-col w-full">
               <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
@@ -176,6 +183,7 @@ export default function LiquidacionesPendientes() {
               </select>
             </div>
 
+            {/* Tipo */}
             <div className="flex flex-col w-full">
               <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
@@ -186,13 +194,14 @@ export default function LiquidacionesPendientes() {
               </select>
             </div>
 
+            {/* Fechas */}
             <div className="flex flex-col w-full">
               <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
               </label>
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
                 <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
-                <span className="text-gray-400 text-[10px] sm:text-xs hidden sm:inline">→</span>
+                <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">→</span>
                 <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
               </div>
             </div>
@@ -200,7 +209,7 @@ export default function LiquidacionesPendientes() {
         </div>
 
         {/* Tabla scrollable */}
-        <div className="overflow-x-auto max-h-[70vh] w-full">
+        <div className="overflow-x-auto w-full max-h-[70vh]">
           <Table
             headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
             data={solicitudesFiltradas}
@@ -209,18 +218,18 @@ export default function LiquidacionesPendientes() {
               <>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base font-semibold">{s.numero_solicitud}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs md:text-sm ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-xs md:text-sm ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
                 </td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.fecha}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base truncate max-w-[140px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base truncate max-w-[120px] sm:max-w-[160px] md:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs md:text-sm ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-xs md:text-sm ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
                 </td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
                   <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-2">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> Presentar
+                    <FileText className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" /> Presentar
                   </Button>
                 </td>
               </>

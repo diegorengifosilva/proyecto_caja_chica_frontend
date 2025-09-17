@@ -3,13 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 import EventBus from "@/components/EventBus";
 import { User, Tag, DollarSign, WalletMinimal, Calendar, BadgeAlert, Landmark, Hash, MessageCircleWarning } from "lucide-react";
 
 export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided }) {
   const { authUser: user, logout } = useAuth();
-  const navigate = useNavigate();
   const [solicitud, setSolicitud] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comentario, setComentario] = useState("");
@@ -49,37 +47,22 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
     setAccion(decision);
     try {
       const token = localStorage.getItem("access_token");
-
       await api.post(
         `/boleta/solicitudes/${solicitudId}/decision/`,
         { decision, comentario },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Recargar detalle para obtener el estado exacto actualizado
-      const { data: solicitudActualizada } = await api.get(
-        `/boleta/solicitudes/${solicitudId}/`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSolicitud(solicitudActualizada);
-
-      // Emitir eventos globales
+      // Emitir evento global para actualizar dashboard
       EventBus.emit(
         decision === "Atendido" ? "solicitudAtendida" : "solicitudRechazada",
         { id: solicitudId }
       );
 
-      const msg =
-        decision === "Atendido"
-          ? "Solicitud atendida correctamente."
-          : "Solicitud rechazada correctamente.";
-
-      if (onDecided) onDecided(msg);
-
-      // Redirigir si se atendió
-      if (decision === "Atendido") navigate("/dashboard/liquidaciones");
+      // Mostrar toast y cerrar modal
+      toast.success(decision === "Atendido" ? "Solicitud atendida." : "Solicitud rechazada.");
+      if (onDecided) onDecided(decision === "Atendido" ? "Solicitud atendida correctamente." : "Solicitud rechazada correctamente.");
       onClose();
-
     } catch (e) {
       console.error(e);
       toast.error("Error al registrar la acción.");
@@ -91,9 +74,6 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
 
   if (!solicitudId) return null;
 
-  // -------------------------------
-  // Render
-  // -------------------------------
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 px-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-3xl shadow-xl relative border border-gray-100 dark:border-gray-700 overflow-y-auto max-h-[90vh]">
@@ -125,38 +105,30 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
               <div className="space-y-2">
                 <p className="flex items-center gap-1">
                   <User className="w-4 h-4 text-gray-800" />
-                  <span className="font-semibold">Solicitante:</span>{" "}
-                  {solicitud?.solicitante_nombre || solicitud?.solicitante || "—"}
+                  <span className="font-semibold">Solicitante:</span> {solicitud?.solicitante_nombre || solicitud?.solicitante || "—"}
                 </p>
                 <p className="flex items-center gap-1">
                   <Tag className="w-4 h-4 text-gray-800" />
-                  <span className="font-semibold">Tipo:</span>{" "}
-                  {solicitud?.tipo_solicitud || "—"}
+                  <span className="font-semibold">Tipo:</span> {solicitud?.tipo_solicitud || "—"}
                 </p>
                 <p className="flex items-center gap-1">
                   <WalletMinimal className="w-4 h-4 text-gray-800" />
-                  <span className="font-semibold">Monto S/:</span>{" "}
-                  {(Number(solicitud?.total_soles ?? 0) || 0).toFixed(2)}
+                  <span className="font-semibold">Monto S/:</span> {(Number(solicitud?.total_soles ?? 0)).toFixed(2)}
                 </p>
                 <p className="flex items-center gap-1">
                   <DollarSign className="w-4 h-4 text-gray-800" />
-                  <span className="font-semibold">Monto $:</span>{" "}
-                  {(Number(solicitud?.total_dolares ?? 0) || 0).toFixed(2)}
+                  <span className="font-semibold">Monto $:</span> {(Number(solicitud?.total_dolares ?? 0)).toFixed(2)}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <p className="flex items-center gap-1">
                   <Calendar className="w-4 h-4 text-gray-800" />
-                  <span className="font-semibold">Fecha:</span>{" "}
-                  {solicitud?.fecha
-                    ? new Date(solicitud.fecha).toLocaleDateString("es-PE")
-                    : "—"}
+                  <span className="font-semibold">Fecha:</span> {solicitud?.fecha ? new Date(solicitud.fecha).toLocaleDateString("es-PE") : "—"}
                 </p>
                 <p className="flex items-center gap-1">
                   <BadgeAlert className="w-4 h-4 text-gray-800" />
-                  <span className="font-semibold">Estado actual:</span>{" "}
-                  {solicitud?.estado || "—"}
+                  <span className="font-semibold">Estado actual:</span> {solicitud?.estado || "—"}
                 </p>
                 {solicitud?.banco && (
                   <p className="flex items-center gap-1">
@@ -167,8 +139,7 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
                 {solicitud?.numero_cuenta && (
                   <p className="flex items-center gap-1">
                     <Hash className="w-4 h-4 text-gray-800" />
-                    <span className="font-semibold">N° Cuenta:</span>{" "}
-                    {solicitud.numero_cuenta}
+                    <span className="font-semibold">N° Cuenta:</span> {solicitud.numero_cuenta}
                   </p>
                 )}
               </div>

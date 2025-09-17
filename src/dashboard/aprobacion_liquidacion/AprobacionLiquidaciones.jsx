@@ -11,6 +11,7 @@ import DetalleLiquidacionModal from "./LiquidacionDetalleModal";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, PieChart, Pie } from "recharts";
 import { motion } from "framer-motion";
 import "tippy.js/dist/tippy.css";
+import EventBus from "@/components/EventBus";
 import { STATE_CLASSES, STATE_COLORS, TIPO_SOLICITUD_CLASSES, TYPE_COLORS } from "@/components/ui/colors";
 import KpiCard from "@/components/ui/KpiCard";
 import Table from "@/components/ui/table";
@@ -46,7 +47,7 @@ export default function AprobacionLiquidaciones() {
       const { data } = await api.get("/boleta/liquidaciones_pendientes/", {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          destinatario_id: user.id,
+          destinatario_id: user.id, // Solo las que tienen como destinatario al encargado logueado
           estado: "Liquidación enviada para Aprobación",
         },
       });
@@ -59,6 +60,21 @@ export default function AprobacionLiquidaciones() {
       setLoading(false);
     }
   }, [user, logout]);
+
+  // -------------------------------
+  // EventBus para refrescar automáticamente
+  // -------------------------------
+  useEffect(() => {
+    EventBus.on("liquidacionPresentada", fetchLiquidaciones);
+    EventBus.on("liquidacionAprobada", fetchLiquidaciones);
+    EventBus.on("liquidacionRechazada", fetchLiquidaciones);
+
+    return () => {
+      EventBus.off("liquidacionPresentada", fetchLiquidaciones);
+      EventBus.off("liquidacionAprobada", fetchLiquidaciones);
+      EventBus.off("liquidacionRechazada", fetchLiquidaciones);
+    };
+  }, [fetchLiquidaciones]);
 
   useEffect(() => {
     fetchLiquidaciones();
@@ -112,6 +128,8 @@ export default function AprobacionLiquidaciones() {
       setDetalleModalOpen(false);
       setActiveRow(selectedLiquidacion.id);
       setTimeout(() => setActiveRow(null), 1500);
+      // Emitir evento global
+      EventBus.emit(accion === "aprobar" ? "liquidacionAprobada" : "liquidacionRechazada", res.data);
     } catch (err) {
       console.error(err);
     }
@@ -135,6 +153,7 @@ export default function AprobacionLiquidaciones() {
   // RENDER
   // -------------------------------
   if (loading) return <p className="text-center py-10 animate-pulse">Cargando...</p>;
+  if (!Array.isArray(liquidaciones) || liquidaciones.length === 0) return <p className="text-center py-10">No hay liquidaciones pendientes.</p>;
 
   return (
     <div className="p-6 space-y-6">
