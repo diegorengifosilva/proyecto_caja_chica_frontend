@@ -185,7 +185,7 @@ export default function LiquidacionesPendientes() {
         <ChartWrapped
           title="Montos por Tipo de Solicitud (S/.)"
           icon={<ChartBarDecreasing className="w-5 h-5" />}
-          className="h-72 sm:h-80"
+          className="h-64 sm:h-72"
           tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -194,7 +194,7 @@ export default function LiquidacionesPendientes() {
               <XAxis type="number" />
               <YAxis dataKey="name" type="category" width={100} />
               <Tooltip formatter={(val) => `S/ ${val.toLocaleString()}`} />
-              <Bar dataKey="value" barSize={35}>
+              <Bar dataKey="value" barSize={30}>
                 {dataMontoPorTipo.map((entry, i) => (
                   <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />
                 ))}
@@ -207,7 +207,7 @@ export default function LiquidacionesPendientes() {
         <ChartWrapped
           title="Distribución por Tipo"
           icon={<ChartColumnIncreasing className="w-5 h-5" />}
-          className="h-72 sm:h-80"
+          className="h-64 sm:h-72"
           tooltipFormatter={tooltipFormatter}
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -216,7 +216,7 @@ export default function LiquidacionesPendientes() {
               <XAxis dataKey="name" />
               <YAxis allowDecimals={false} />
               <Tooltip formatter={tooltipFormatter} />
-              <Bar dataKey="value" barSize={35}>
+              <Bar dataKey="value" barSize={30}>
                 {dataTipo.map((entry, i) => (
                   <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />
                 ))}
@@ -228,16 +228,16 @@ export default function LiquidacionesPendientes() {
 
       {/* Filtros */}
       <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-lg mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
           {/* Solicitante */}
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
             </label>
             <select
               value={filtroSolicitante}
               onChange={(e) => setFiltroSolicitante(e.target.value)}
-              className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none w-full sm:w-auto"
+              className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
             >
               <option value="">Todos</option>
               {solicitantes.map((sol) => (
@@ -247,14 +247,14 @@ export default function LiquidacionesPendientes() {
           </div>
 
           {/* Tipo */}
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
             </label>
             <select
               value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value)}
-              className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none w-full sm:w-auto"
+              className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none w-full"
             >
               <option value="">Todos</option>
               {Object.keys(TYPE_COLORS).map((tipo_solicitud) => (
@@ -264,11 +264,11 @@ export default function LiquidacionesPendientes() {
           </div>
 
           {/* Fechas */}
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
             </label>
-            <div className="flex flex-col sm:flex-row items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
               <input
                 type="date"
                 value={fechaInicio}
