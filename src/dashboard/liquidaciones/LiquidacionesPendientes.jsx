@@ -96,154 +96,146 @@ export default function LiquidacionesPendientes() {
     { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
   ];
 
-  return (
-    <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
-      <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
+return (
+  <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
+    <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
 
-        {/* Header */}
-        <div className="flex justify-center md:justify-start items-center mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold flex items-center gap-2 text-black">
-            <FolderKanban className="w-5 sm:w-6 md:w-7 lg:w-8 h-5 sm:h-6 md:h-7 lg:h-8" /> Liquidaciones Pendientes
-          </h2>
-        </div>
+      {/* Header */}
+      <div className="flex justify-center md:justify-start items-center mb-6">
+        <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold flex items-center gap-2 text-black">
+          <FolderKanban className="w-5 sm:w-6 md:w-7 lg:w-8 h-5 sm:h-6 md:h-7 lg:h-8" />
+          Liquidaciones Pendientes
+        </h2>
+      </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
-          {kpis.map((kpi) => (
-            <div key={kpi.label} className="flex-1 min-w-0">
-              <KpiCard
-                label={kpi.label}
-                value={loading ? 0 : kpi.value}
-                icon={kpi.icon}
-                gradient={kpi.gradient}
-                tooltip={kpi.tooltip}
-                decimals={Number.isInteger(kpi.value) ? 0 : 2}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Gráficos */}
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
-
-          <ChartWrapped
-            title="Montos por Tipo de Solicitud (S/.)"
-            icon={<ChartBarDecreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
-            tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
-            className="flex-1 w-full min-w-0 h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
+      {/* KPIs manuales */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full">
+        {kpis.map((kpi) => (
+          <div
+            key={kpi.label}
+            className="flex-1 min-w-0 p-4 rounded-xl text-white flex flex-col items-center justify-center text-center shadow-md
+                       hover:scale-105 hover:shadow-lg transition-transform"
+            style={{ background: kpi.gradient }}
           >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dataMontoPorTipo} layout="vertical" margin={{ left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={80} />
-                <Tooltip formatter={(val) => `S/ ${val.toLocaleString()}`} />
-                <Bar dataKey="value" barSize={25}>
-                  {dataMontoPorTipo.map((entry, i) => <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartWrapped>
+            {kpi.icon && <kpi.icon className="w-6 h-6 mb-2 opacity-90" />}
+            <p className="text-xs sm:text-sm opacity-90">{kpi.label}</p>
+            <p className="text-xl sm:text-2xl font-bold">{loading ? 0 : Number(kpi.value).toLocaleString(undefined, { minimumFractionDigits: kpi.decimals || 0, maximumFractionDigits: kpi.decimals || 0 })}</p>
+          </div>
+        ))}
+      </div>
 
-          <ChartWrapped
-            title="Distribución por Tipo"
-            icon={<ChartColumnIncreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
-            tooltipFormatter={tooltipFormatter}
-            className="flex-1 w-full min-w-0 h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dataTipo}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <Tooltip formatter={tooltipFormatter} />
-                <Bar dataKey="value" barSize={25}>
-                  {dataTipo.map((entry, i) => <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartWrapped>
-
-        </div>
-
-        {/* Filtros */}
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 items-end">
-            {/* Solicitante */}
-            <div className="flex flex-col w-full">
-              <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
-              </label>
-              <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 text-xs sm:text-sm md:text-base w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
-                <option value="">Todos</option>
-                {solicitantes.map((sol) => <option key={sol} value={sol}>{sol}</option>)}
-              </select>
-            </div>
-
-            {/* Tipo */}
-            <div className="flex flex-col w-full">
-              <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
-              </label>
-              <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 text-xs sm:text-sm md:text-base w-full focus:ring-2 focus:ring-green-400 focus:outline-none">
-                <option value="">Todos</option>
-                {Object.keys(TYPE_COLORS).map((tipo_solicitud) => <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>)}
-              </select>
-            </div>
-
-            {/* Fechas */}
-            <div className="flex flex-col w-full">
-              <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
-                <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
-              </label>
-              <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
-                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
-                <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">→</span>
-                <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
-              </div>
-            </div>
+      {/* Gráficos manuales */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-6 w-full">
+        {/* Montos por Tipo */}
+        <div className="flex-1 min-w-0 bg-white rounded-xl shadow-md p-4 flex flex-col">
+          <div className="flex items-center mb-2">
+            <ChartBarDecreasing className="w-5 h-5 mr-2" />
+            <h3 className="font-semibold text-gray-700 text-sm sm:text-base">Montos por Tipo de Solicitud (S/.)</h3>
+          </div>
+          <div className="flex-1 w-full min-h-[220px]">
+            {/* Aquí va tu chart de Recharts */}
           </div>
         </div>
 
-        {/* Tabla scrollable */}
-        <div className="overflow-x-auto w-full flex-1 min-w-0">
-          <Table
-            headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
-            data={solicitudesFiltradas}
-            emptyMessage="No hay solicitudes en este estado o rango de fechas."
-            renderRow={(s) => (
-              <>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base font-semibold whitespace-nowrap">{s.numero_solicitud}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-xs md:text-sm ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
+        {/* Distribución por Tipo */}
+        <div className="flex-1 min-w-0 bg-white rounded-xl shadow-md p-4 flex flex-col">
+          <div className="flex items-center mb-2">
+            <ChartColumnIncreasing className="w-5 h-5 mr-2" />
+            <h3 className="font-semibold text-gray-700 text-sm sm:text-base">Distribución por Tipo</h3>
+          </div>
+          <div className="flex-1 w-full min-h-[220px]">
+            {/* Aquí va tu chart de Recharts */}
+          </div>
+        </div>
+      </div>
+
+      {/* Filtros manuales */}
+      <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+          {/* Solicitante */}
+          <div className="flex flex-col w-full">
+            <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
+            </label>
+            <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none text-xs sm:text-sm md:text-base">
+              <option value="">Todos</option>
+              {solicitantes.map((sol) => <option key={sol} value={sol}>{sol}</option>)}
+            </select>
+          </div>
+
+          {/* Tipo */}
+          <div className="flex flex-col w-full">
+            <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
+            </label>
+            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none text-xs sm:text-sm md:text-base">
+              <option value="">Todos</option>
+              {Object.keys(TYPE_COLORS).map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+            </select>
+          </div>
+
+          {/* Rango de fechas */}
+          <div className="flex flex-col w-full">
+            <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
+            </label>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+              <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">→</span>
+              <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabla manual y scrollable */}
+      <div className="overflow-x-auto w-full flex-1 min-w-0 bg-white rounded-xl shadow-sm">
+        <table className="w-full border-collapse text-xs sm:text-sm md:text-base">
+          <thead className="bg-gray-100">
+            <tr>
+              {["N°","Tipo","S/.","$","Fecha","Concepto","Estado","Acción"].map((h) => (
+                <th key={h} className="px-2 py-2 text-left">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {solicitudesFiltradas.length === 0 && (
+              <tr><td colSpan={8} className="text-center py-4">No hay solicitudes en este estado o rango de fechas.</td></tr>
+            )}
+            {solicitudesFiltradas.map((s) => (
+              <tr key={s.id} className="border-t hover:bg-gray-50">
+                <td className="px-2 py-1 text-center font-semibold whitespace-nowrap">{s.numero_solicitud}</td>
+                <td className="px-2 py-1 text-center whitespace-nowrap">
+                  <span className={`px-2 py-0.5 rounded-full ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
                 </td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">{s.fecha}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base truncate max-w-[120px] sm:max-w-[160px] md:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-xs md:text-sm ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
+                <td className="px-2 py-1 text-center whitespace-nowrap">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
+                <td className="px-2 py-1 text-center whitespace-nowrap">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
+                <td className="px-2 py-1 text-center whitespace-nowrap">{s.fecha}</td>
+                <td className="px-2 py-1 text-center truncate max-w-[150px]">{s.concepto_gasto ?? "-"}</td>
+                <td className="px-2 py-1 text-center whitespace-nowrap">
+                  <span className={`px-2 py-0.5 rounded-full ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
                 </td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base whitespace-nowrap">
+                <td className="px-2 py-1 text-center whitespace-nowrap">
                   <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-2">
-                    <FileText className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" /> Presentar
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" /> Presentar
                   </Button>
                 </td>
-              </>
-            )}
-          />
-        </div>
-
-        {showPresentarModal && (
-          <PresentarDocumentacionModal
-            open={showPresentarModal}
-            onClose={() => setShowPresentarModal(false)}
-            solicitud={selectedSolicitud}
-          />
-        )}
-
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {showPresentarModal && (
+        <PresentarDocumentacionModal
+          open={showPresentarModal}
+          onClose={() => setShowPresentarModal(false)}
+          solicitud={selectedSolicitud}
+        />
+      )}
+
     </div>
-  );
+  </div>
+);
 
 }
