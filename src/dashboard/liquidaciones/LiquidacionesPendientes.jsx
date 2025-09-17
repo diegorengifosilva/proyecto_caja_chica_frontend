@@ -195,28 +195,33 @@ return (
         </div>
       </div>
 
-      {/* Tabla scrollable */}
+      {/* Tabla scrollable, fila clickeable */}
       <div className="overflow-x-auto overflow-y-auto max-h-[65vh] w-full">
         <table className="min-w-[720px] w-full table-auto border-collapse text-[10px] sm:text-xs">
           <thead className="bg-gray-100 text-gray-700 font-semibold">
             <tr>
-              {["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"].map((header, i) => (
-                <th key={i} className="px-1 py-1 border border-gray-200 text-center">
-                  {header}
-                </th>
+              {["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado"].map((header, i) => (
+                <th key={i} className="px-1 py-1 border border-gray-200 text-center">{header}</th>
               ))}
             </tr>
           </thead>
           <tbody className="bg-gray-50">
             {solicitudesFiltradas.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-6 text-gray-500 italic border border-gray-200">
+                <td colSpan={7} className="text-center py-6 text-gray-500 italic border border-gray-200">
                   No hay solicitudes en este estado o rango de fechas.
                 </td>
               </tr>
             ) : (
               solicitudesFiltradas.map((s, idx) => (
-                <tr key={s.id || idx} className="hover:bg-gray-100 transition">
+                <tr
+                  key={s.id || idx}
+                  className="hover:bg-gray-100 transition cursor-pointer"
+                  onClick={() => {
+                    setSelectedSolicitud(s);
+                    setShowPresentarModal(true);
+                  }}
+                >
                   <td className="px-1 py-1 font-semibold text-center">{s.numero_solicitud}</td>
                   <td className="px-1 py-1 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[9px] ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>
@@ -231,16 +236,6 @@ return (
                     <span className={`px-2 py-0.5 rounded-full text-[9px] ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>
                       {s.estado}
                     </span>
-                  </td>
-                  <td className="px-1 py-1 text-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAccion(s.id, "Presentar Documentación", s)}
-                      className="flex items-center justify-center gap-1 px-3 py-2 w-full text-xs sm:text-sm"
-                    >
-                      <FileText className="w-4 h-4" /> Presentar
-                    </Button>
                   </td>
                 </tr>
               ))
