@@ -8,23 +8,27 @@ const API_BASE = "http://localhost:8000/api/boleta/documentos";
 
 /**
  * Procesa un documento (imagen/PDF) con OCR en el backend.
-* Endpoint: /boleta/documentos/procesar/
- * 
- * @param {FormData} formData - Incluye: imagen, tipo_documento, solicitud_id
+ * Endpoint: /boleta/documentos/procesar/
+ *
+ * @param {FormData} formData - Incluye: archivo, tipo_documento, id_solicitud
  * @returns {Object} - Datos extraídos (fecha, ruc, total, etc.)
  */
 export const procesarDocumentoOCR = async (formData) => {
   try {
-    const response = await axios.post(
-      `${API_BASE}/procesar/`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
+    // ⚡ DEBUG: mostrar lo que se está mandando
+    for (let pair of formData.entries()) {
+      console.log("📤 Enviando:", pair[0], pair[1]);
+    }
+
+    const response = await axios.post(`${API_BASE}/procesar/`, formData, {
+      headers: {
+        "Accept": "application/json",
+        // axios ya setea boundary automáticamente, no lo forzamos
+      },
+      timeout: 60000, // ⏳ más tiempo por si la red móvil es lenta
+    });
 
     const { datos_detectados } = response.data || {};
-
     console.log("✅ OCR recibido:", datos_detectados);
 
     // Validaciones mínimas en campos críticos
@@ -44,9 +48,16 @@ export const procesarDocumentoOCR = async (formData) => {
   } catch (error) {
     console.error("❌ Error procesando OCR:", error);
 
+    // Log más detallado en móvil
+    if (error.response) {
+      console.error("📡 Respuesta backend:", error.response.data);
+    } else if (error.request) {
+      console.error("📡 Sin respuesta del servidor (móvil?):", error.request);
+    }
+
     throw new Error(
       error.response?.data?.error ||
-        "No se pudo procesar el documento. Intenta nuevamente con otra imagen."
+        "No se pudo procesar el documento. Intenta nuevamente con otra imagen o revisa tu conexión."
     );
   }
 };
@@ -69,24 +80,29 @@ export const testOCR = async () => {
 /**
  * Guarda un documento de gasto procesado (pos-OCR, editable por usuario).
  * Endpoint: /boleta/documentos/guardar/
- * 
- * @param {FormData} formData - Incluye: solicitud_id, imagen, ruc, total, etc.
+ *
+ * @param {FormData} formData - Incluye: solicitud_id, archivo, ruc, total, etc.
  * @returns {Object} - Confirmación del backend
  */
 export const guardarDocumentoGasto = async (formData) => {
   try {
-    const response = await axios.post(
-      `${API_BASE}/guardar/`,   // 🔥 Corregido (quitamos el "documentos" duplicado)
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
+    const response = await axios.post(`${API_BASE}/guardar/`, formData, {
+      headers: {
+        "Accept": "application/json",
+      },
+      timeout: 60000,
+    });
 
     console.log("✅ Documento guardado:", response.data);
     return response.data;
   } catch (error) {
     console.error("❌ Error guardando documento:", error);
+
+    if (error.response) {
+      console.error("📡 Respuesta backend:", error.response.data);
+    } else if (error.request) {
+      console.error("📡 Sin respuesta del servidor (móvil?):", error.request);
+    }
 
     throw new Error(
       error.response?.data?.detail ||
@@ -98,13 +114,15 @@ export const guardarDocumentoGasto = async (formData) => {
 /**
  * Obtiene todos los documentos vinculados a una solicitud.
  * Endpoint: /boleta/documentos/solicitud/<id>/
- * 
+ *
  * @param {number} solicitudId - ID de la solicitud
  * @returns {Array} - Lista de documentos de esa solicitud
  */
 export const obtenerDocumentosPorSolicitud = async (solicitudId) => {
   try {
-    const response = await axios.get(`${API_BASE}/solicitud/${solicitudId}/`);
+    const response = await axios.get(`${API_BASE}/solicitud/${solicitudId}/`, {
+      timeout: 30000,
+    });
 
     console.log(`📥 Documentos de solicitud ${solicitudId}:`, response.data);
     return response.data;
