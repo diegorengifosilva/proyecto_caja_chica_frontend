@@ -17,21 +17,33 @@ export default function SubirArchivoModal({
   const [cargando, setCargando] = useState(false);
   const [errorOCR, setErrorOCR] = useState(null);
   const [totalManual, setTotalManual] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar si es móvil o tablet
-  useEffect(() => {
-    const checkMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    setIsMobile(checkMobile);
-  }, []);
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const VALID_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 
   const handleArchivoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setArchivo(file);
-      setErrorOCR(null);
-      setTotalManual("");
+    if (!file) return;
+
+    // Validar tamaño
+    if (file.size > MAX_FILE_SIZE) {
+      alert("⚠️ El archivo excede los 5MB permitidos.");
+      return;
     }
+
+    // Validar tipo
+    if (!VALID_TYPES.includes(file.type)) {
+      if (file.type === "image/heic") {
+        alert("⚠️ El formato HEIC no es soportado. Convierte la foto a JPG o PNG.");
+      } else {
+        alert("⚠️ Formato no válido. Solo se permiten JPG, PNG y PDF.");
+      }
+      return;
+    }
+
+    setArchivo(file);
+    setErrorOCR(null);
+    setTotalManual("");
   };
 
   const handleProcesar = async () => {
@@ -51,7 +63,6 @@ export default function SubirArchivoModal({
       const datosDetectados = await procesarDocumentoOCR(formData);
       console.log("📦 OCR recibido:", datosDetectados);
 
-      // Aseguramos que cada campo esté definido
       const doc = {
         nombre_archivo: archivo.name,
         tipo_documento: tipoDocumento,
@@ -59,7 +70,10 @@ export default function SubirArchivoModal({
         fecha: datosDetectados.fecha || "",
         ruc: datosDetectados.ruc || "",
         razon_social: datosDetectados.razon_social || "",
-        total: (datosDetectados.total && datosDetectados.total.toString().replace(",", ".")) || totalManual || "",
+        total:
+          (datosDetectados.total && datosDetectados.total.toString().replace(",", ".")) ||
+          totalManual ||
+          "",
         archivo,
       };
 
@@ -78,7 +92,6 @@ export default function SubirArchivoModal({
       setCargando(false);
     }
   };
-
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -111,7 +124,7 @@ export default function SubirArchivoModal({
 
           {/* Botones de carga */}
           <div className="flex flex-col sm:flex-row gap-2">
-            {/* Botón Cámara */}
+            {/* Cámara */}
             <label className="flex-1 cursor-pointer">
               <input
                 type="file"
@@ -125,11 +138,11 @@ export default function SubirArchivoModal({
               </span>
             </label>
 
-            {/* Botón Archivo */}
+            {/* Archivo */}
             <label className="flex-1 cursor-pointer">
               <input
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/jpeg,image/png,application/pdf"
                 onChange={handleArchivoChange}
                 style={{ display: "none" }}
               />
