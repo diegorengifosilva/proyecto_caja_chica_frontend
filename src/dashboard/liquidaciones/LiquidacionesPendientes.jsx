@@ -116,14 +116,14 @@ export default function LiquidacionesPendientes() {
                 gradient={kpi.gradient}
                 tooltip={kpi.tooltip}
                 decimals={Number.isInteger(kpi.value) ? 0 : 2}
-                className="text-xs sm:text-sm md:text-base w-full p-2 sm:p-3 md:p-4"
+                className="text-xs sm:text-sm md:text-base w-full p-3 sm:p-4"
               />
             </div>
           ))}
         </div>
 
         {/* Gráficos */}
-        <div className="flex flex-col gap-4 sm:gap-6 mb-6 w-full lg:flex-row">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
           <ChartWrapped
             title="Montos por Tipo de Solicitud (S/.)"
             icon={<ChartBarDecreasing className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
