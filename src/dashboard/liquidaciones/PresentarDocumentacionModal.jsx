@@ -2,14 +2,17 @@
 import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, X, Send, FileText, User, Tag, DollarSign, WalletMinimal, Calendar, BadgeAlert, ClipboardList, FilePlus2 } from "lucide-react";
+import {
+  Plus, X, Send, FileText, User, Tag, DollarSign,
+  WalletMinimal, Calendar, BadgeAlert, ClipboardList, FilePlus2
+} from "lucide-react";
 import api from "@/services/api";
 import Table from "@/components/ui/table";
 import SubirArchivoModal from "./SubirArchivoModal";
 
 const TIPO_CAMBIO = 3.52; // 1 USD = 3.52 S/
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 🔹 10 MB
 
 const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
   const [documentos, setDocumentos] = useState([]);
@@ -48,12 +51,10 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
       if (!token) return alert("⚠️ No se encontró token. Debes iniciar sesión.");
 
       const formData = new FormData();
-
-      // 🔹 Cambiado para que el backend reciba lo que espera
       formData.append("solicitud_id", solicitud.id);
 
       // Datos de los documentos (sin archivos)
-      const documentosSinArchivo = documentos.map(doc => ({
+      const documentosSinArchivo = documentos.map((doc) => ({
         tipo_documento: doc.tipo_documento,
         numero_documento: doc.numero_documento,
         fecha: doc.fecha,
@@ -63,18 +64,21 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
       }));
       formData.append("documentos", JSON.stringify(documentosSinArchivo));
 
-      // Archivos
-      documentos.forEach((doc) => {
-        if (doc.archivo) formData.append("archivos", doc.archivo);
-      });
-
-      // 🔹 DEBUG
-      console.log("📤 Enviando FormData:");
-      for (let pair of formData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(pair[0], pair[1].name, pair[1].size, pair[1].type);
-        } else {
-          console.log(pair[0], pair[1]);
+      // 🔹 Archivos con validación
+      const validTypes = ["image/jpeg", "image/png", "application/pdf"];
+      for (let doc of documentos) {
+        if (doc.archivo instanceof File) {
+          if (doc.archivo.size > MAX_FILE_SIZE) {
+            alert(`⚠️ El archivo ${doc.archivo.name} supera el límite de 10MB.`);
+            setLoading(false);
+            return;
+          }
+          if (!validTypes.includes(doc.archivo.type)) {
+            alert(`⚠️ El archivo ${doc.archivo.name} no tiene un formato válido.`);
+            setLoading(false);
+            return;
+          }
+          formData.append("archivos", doc.archivo);
         }
       }
 
@@ -89,7 +93,6 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
       console.log("✅ Liquidación presentada:", res.data);
       onClose();
       alert("✅ Liquidación presentada correctamente");
-
     } catch (error) {
       console.error("❌ Error guardando documento:", error.response?.data || error);
       alert("❌ Ocurrió un error al presentar la liquidación. Revisa consola.");
@@ -98,7 +101,7 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
     }
   };
 
- return (
+  return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="w-full max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
