@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, X, Send, FileText, User, Tag, DollarSign, WalletMinimal, Calendar, BadgeAlert, ClipboardList, FilePlus2 } from "lucide-react";
 import api from "@/services/api";
@@ -19,42 +19,32 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
   if (!solicitud) return null;
 
   const { totalSoles, totalDolares } = useMemo(() => {
-    const totalS = documentos.reduce(
-      (sum, doc) => sum + parseFloat(doc.total || 0),
-      0
-    );
+    const totalS = documentos.reduce((sum, doc) => sum + parseFloat(doc.total || 0), 0);
     return { totalSoles: totalS, totalDolares: totalS / TIPO_CAMBIO };
   }, [documentos]);
 
-  // Agrega documento subido al estado
   const handleArchivoSubido = (doc) => {
     setDocumentos((prev) => [...prev, doc]);
     console.log("✅ Documento agregado:", doc);
   };
 
-  // Eliminar documento de la lista antes de presentar
   const handleEliminarDocumento = (doc) => {
     setDocumentos((prev) => prev.filter((d) => d !== doc));
   };
 
-  // Abrir archivo en nueva pestaña
   const handleAbrirArchivo = (archivo) => {
     if (!archivo) return;
     const url = URL.createObjectURL(archivo);
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // Enviar liquidación al backend y guardar documentos
   const handlePresentarLiquidacion = async () => {
     if (documentos.length === 0) return alert("⚠️ Agrega al menos un comprobante.");
-
     try {
       setLoading(true);
-
       const formData = new FormData();
       formData.append("id_solicitud", solicitud.id);
 
-      // 🔹 Enviar documentos sin el archivo
       const documentosSinArchivo = documentos.map(doc => ({
         tipo_documento: doc.tipo_documento,
         numero_documento: doc.numero_documento,
@@ -65,12 +55,11 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
       }));
       formData.append("documentos", JSON.stringify(documentosSinArchivo));
 
-      // 🔹 Archivos separados con la misma clave
       documentos.forEach(doc => {
         formData.append("archivos", doc.archivo);
       });
 
-      const res = await api.post("/api/boleta/documentos/guardar/", formData, {
+      await api.post("/api/boleta/documentos/guardar/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -139,7 +128,6 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
                     Comprobantes OCR
                   </h3>
 
-                  {/* Agregar Comprobantes */}
                   <Button
                     size="sm"
                     onClick={() => setShowSubirArchivoModal(true)}
@@ -149,37 +137,66 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
                   </Button>
                 </div>
 
-                {/* Tabla OCR */}
-                <Table
-                  headers={[
-                    "Nombre del Archivo",
-                    "N° Doc",
-                    "Tipo",
-                    "Fecha",
-                    "RUC",
-                    "Razón Social",
-                    "Total",
-                  ]}
-                  data={documentos}
-                  emptyMessage="No se han agregado comprobantes todavía."
-                  renderRow={(doc) => (
-                    <>
-                      <td
-                        className="px-3 py-3 text-center cursor-pointer text-blue-600 hover:underline"
-                        onClick={() => handleAbrirArchivo(doc.archivo)}
-                      >
-                        {doc.nombre_archivo}
-                      </td>
-                      <td className="px-3 py-3 text-center">{doc.numero_documento}</td>
-                      <td className="px-3 py-3 text-center">{doc.tipo_documento}</td>
-                      <td className="px-3 py-3 text-center">{doc.fecha}</td>
-                      <td className="px-3 py-3 text-center">{doc.ruc}</td>
-                      <td className="px-3 py-3 text-center">{doc.razon_social}</td>
-                      <td className="px-3 py-3 text-center">{doc.total}</td>
-                    </>
-                  )}
-                  onDeleteRow={(doc) => handleEliminarDocumento(doc)}
-                />
+                {/* Tabla OCR con animación */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border border-gray-200">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-3 py-2 text-center">Nombre del Archivo</th>
+                        <th className="px-3 py-2 text-center">N° Doc</th>
+                        <th className="px-3 py-2 text-center">Tipo</th>
+                        <th className="px-3 py-2 text-center">Fecha</th>
+                        <th className="px-3 py-2 text-center">RUC</th>
+                        <th className="px-3 py-2 text-center">Razón Social</th>
+                        <th className="px-3 py-2 text-center">Total</th>
+                        <th className="px-3 py-2 text-center"> </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <AnimatePresence>
+                        {documentos.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} className="text-center py-4 text-gray-500">
+                              No se han agregado comprobantes todavía.
+                            </td>
+                          </tr>
+                        ) : (
+                          documentos.map((doc, index) => (
+                            <motion.tr
+                              key={index}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className="border-b border-gray-200"
+                            >
+                              <td
+                                className="px-3 py-3 text-center cursor-pointer text-blue-600 hover:underline"
+                                onClick={() => handleAbrirArchivo(doc.archivo)}
+                              >
+                                {doc.nombre_archivo}
+                              </td>
+                              <td className="px-3 py-3 text-center">{doc.numero_documento}</td>
+                              <td className="px-3 py-3 text-center">{doc.tipo_documento}</td>
+                              <td className="px-3 py-3 text-center">{doc.fecha}</td>
+                              <td className="px-3 py-3 text-center">{doc.ruc}</td>
+                              <td className="px-3 py-3 text-center">{doc.razon_social}</td>
+                              <td className="px-3 py-3 text-center">{doc.total}</td>
+                              <td className="px-3 py-3 text-center">
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleEliminarDocumento(doc)}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </td>
+                            </motion.tr>
+                          ))
+                        )}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
 
                 {/* Total Documentado */}
                 <div className="mt-4 text-right font-semibold text-gray-800 text-sm sm:text-base">
