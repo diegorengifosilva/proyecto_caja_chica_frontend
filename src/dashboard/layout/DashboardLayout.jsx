@@ -68,13 +68,16 @@ const NavSectionTitle = ({ title }) => (
   </div>
 );
 
-const SidebarLink = ({ to, label, icon: Icon, collapsed }) => {
+// ... arriba se mantiene igual
+
+const SidebarLink = ({ to, label, icon: Icon, collapsed, onClick }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <NavLink
       to={to}
+      onClick={onClick} // 👉 importante
       className={`relative group flex items-center gap-3 px-4 py-2 rounded-md text-sm transition-all duration-200 
         ${isActive ? "bg-indigo-100 text-indigo-700 font-semibold" : "text-gray-700 hover:bg-indigo-50 hover:shadow-sm"}`}
     >
@@ -158,7 +161,12 @@ export default function DashboardLayout() {
               <div key={section.section}>
                 {sidebarOpen && <NavSectionTitle title={section.section} />}
                 {section.items.map((item) => (
-                  <SidebarLink key={item.to} {...item} collapsed={!sidebarOpen} />
+                  <SidebarLink
+                    key={item.to}
+                    {...item}
+                    collapsed={!sidebarOpen}
+                    onClick={() => setMobileOpen(false)} // 👉 cerrar menú en móviles
+                  />
                 ))}
               </div>
             ))}
@@ -167,7 +175,10 @@ export default function DashboardLayout() {
           {/* Logout */}
           <div className="px-4 py-4 border-t">
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                setMobileOpen(false); // 👉 cerrar también al desloguearse
+                handleLogout();
+              }}
               className="flex items-center gap-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md px-2 py-2 text-sm w-full transition-colors"
             >
               <LogOut className="w-4 h-4" />
