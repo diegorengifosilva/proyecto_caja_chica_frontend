@@ -117,14 +117,14 @@ const DashboardHome = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full flex flex-col p-4 sm:p-6 bg-gray-50 font-sans overflow-auto">
+    <div className="min-h-screen w-full flex flex-col p-3 sm:p-6 bg-gray-50 font-sans overflow-auto">
       {/* Encabezado */}
       <header className="mb-6">
         <motion.h1
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-2"
+          className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-2"
         >
           {getSaludo()},{" "}
           {user?.nombre ? `${user.nombre} ${user.apellido || ""}` : "Usuario"} 👋
@@ -133,7 +133,7 @@ const DashboardHome = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="mt-1 text-base sm:text-lg md:text-xl text-gray-600 italic"
+          className="mt-1 text-sm sm:text-lg md:text-xl text-gray-600 italic"
         >
           Bienvenido a{" "}
           <span className="font-semibold text-blue-600">PMInsight</span>. Aquí
@@ -142,7 +142,7 @@ const DashboardHome = () => {
       </header>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
         {kpis.map((kpi) => (
           <KpiCard
             key={kpi.label}
@@ -163,7 +163,7 @@ const DashboardHome = () => {
           title="Distribución por tipo de solicitud"
           icon={<PieChart className="w-5 h-5 text-gray-700" />}
           tooltipFormatter={tooltipFormatter}
-          className="flex-1 h-[320px] sm:h-[360px] w-full"
+          className="flex-1 h-[260px] sm:h-[320px] md:h-[360px] w-full"
         >
           <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
             <div className="flex-1 min-h-[200px]">
@@ -194,7 +194,7 @@ const DashboardHome = () => {
               {datosTiposSolicitud.map((t, i) => (
                 <div
                   key={t.name}
-                  className="flex items-center gap-2 text-sm text-gray-700 mb-2"
+                  className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2"
                 >
                   <span
                     style={{
@@ -206,9 +206,7 @@ const DashboardHome = () => {
                     }}
                   />
                   <span className="font-medium">{t.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">
-                    ({t.value})
-                  </span>
+                  <span className="text-gray-500 ml-2">({t.value})</span>
                 </div>
               ))}
             </div>
@@ -220,7 +218,7 @@ const DashboardHome = () => {
           title="Estado de solicitudes"
           icon={<BarChart className="w-5 h-5 text-gray-700" />}
           tooltipFormatter={radialTooltipFormatter}
-          className="flex-1 h-[320px] sm:h-[360px] w-full"
+          className="flex-1 h-[260px] sm:h-[320px] md:h-[360px] w-full"
         >
           <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
             <div className="flex-1 min-h-[200px]">
@@ -256,7 +254,7 @@ const DashboardHome = () => {
               {datosEstadosSolicitud.map((e, i) => (
                 <div
                   key={e.name}
-                  className="flex items-center gap-2 text-sm text-gray-700 mb-2"
+                  className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2"
                 >
                   <span
                     style={{
@@ -268,9 +266,7 @@ const DashboardHome = () => {
                     }}
                   />
                   <span className="font-medium">{e.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">
-                    ({e.value})
-                  </span>
+                  <span className="text-gray-500 ml-2">({e.value})</span>
                 </div>
               ))}
             </div>
@@ -281,10 +277,10 @@ const DashboardHome = () => {
       {/* Tabla */}
       <div className="mb-8 w-full overflow-x-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-          <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-700 flex items-center gap-2">
             <FileText className="w-5 h-5" /> Movimientos recientes
           </h3>
-          <span className="text-sm text-gray-500">
+          <span className="text-xs sm:text-sm text-gray-500">
             Total: {solicitudesRecientes.length}
           </span>
         </div>
@@ -309,7 +305,7 @@ const DashboardHome = () => {
               {s.estado}
             </span>,
             <button
-              className="bg-gradient-to-r from-blue-400 to-blue-600 text-white text-sm px-3 py-1.5 rounded-lg shadow-md transition flex items-center gap-2 justify-center"
+              className="bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm px-2 sm:px-3 py-1.5 rounded-lg shadow transition flex items-center gap-2 justify-center"
               onClick={() => setMostrarDetalle(s.nro)}
             >
               Revisar
@@ -319,17 +315,19 @@ const DashboardHome = () => {
       </div>
 
       {/* Accesos rápidos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mt-6 w-full">
         {/* Nueva Solicitud */}
         <div
           onClick={() => handleNavegar("/nueva-solicitud")}
-          className="group bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl shadow-md p-6 flex flex-col items-center justify-center cursor-pointer transition transform hover:scale-105 hover:shadow-lg"
+          className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center cursor-pointer transition hover:shadow-md hover:scale-105"
         >
-          <div className="bg-white/20 rounded-full p-3 mb-3 group-hover:bg-white/30 transition">
-            <FilePlus size={28} />
+          <div className="rounded-full p-2 sm:p-3 mb-3 bg-blue-50 group-hover:bg-blue-100 transition">
+            <FilePlus size={24} className="text-blue-600" />
           </div>
-          <h4 className="font-semibold text-lg">Nueva Solicitud</h4>
-          <p className="text-sm opacity-80 text-center mt-1">
+          <h4 className="font-semibold text-gray-800 text-sm sm:text-lg">
+            Nueva Solicitud
+          </h4>
+          <p className="text-xs sm:text-sm text-gray-500 text-center mt-1">
             Registra una nueva solicitud de gasto.
           </p>
         </div>
@@ -337,13 +335,15 @@ const DashboardHome = () => {
         {/* Ver Liquidaciones */}
         <div
           onClick={() => handleNavegar("/liquidaciones")}
-          className="group bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl shadow-md p-6 flex flex-col items-center justify-center cursor-pointer transition transform hover:scale-105 hover:shadow-lg"
+          className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center cursor-pointer transition hover:shadow-md hover:scale-105"
         >
-          <div className="bg-white/20 rounded-full p-3 mb-3 group-hover:bg-white/30 transition">
-            <PieChart size={28} />
+          <div className="rounded-full p-2 sm:p-3 mb-3 bg-emerald-50 group-hover:bg-emerald-100 transition">
+            <PieChart size={24} className="text-emerald-600" />
           </div>
-          <h4 className="font-semibold text-lg">Ver Liquidaciones</h4>
-          <p className="text-sm opacity-80 text-center mt-1">
+          <h4 className="font-semibold text-gray-800 text-sm sm:text-lg">
+            Ver Liquidaciones
+          </h4>
+          <p className="text-xs sm:text-sm text-gray-500 text-center mt-1">
             Consulta el estado de tus liquidaciones.
           </p>
         </div>
@@ -351,13 +351,15 @@ const DashboardHome = () => {
         {/* Reportes */}
         <div
           onClick={() => handleNavegar("/reportes")}
-          className="group bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-2xl shadow-md p-6 flex flex-col items-center justify-center cursor-pointer transition transform hover:scale-105 hover:shadow-lg"
+          className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center cursor-pointer transition hover:shadow-md hover:scale-105"
         >
-          <div className="bg-white/20 rounded-full p-3 mb-3 group-hover:bg-white/30 transition">
-            <BarChart size={28} />
+          <div className="rounded-full p-2 sm:p-3 mb-3 bg-indigo-50 group-hover:bg-indigo-100 transition">
+            <BarChart size={24} className="text-indigo-600" />
           </div>
-          <h4 className="font-semibold text-lg">Reportes</h4>
-          <p className="text-sm opacity-80 text-center mt-1">
+          <h4 className="font-semibold text-gray-800 text-sm sm:text-lg">
+            Reportes
+          </h4>
+          <p className="text-xs sm:text-sm text-gray-500 text-center mt-1">
             Estadísticas y reportes ejecutivos.
           </p>
         </div>
