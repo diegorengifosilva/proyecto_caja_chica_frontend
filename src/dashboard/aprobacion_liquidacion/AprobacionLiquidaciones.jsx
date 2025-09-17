@@ -34,14 +34,23 @@ export default function AprobacionLiquidaciones() {
   const [accion, setAccion] = useState("");
   const [activeRow, setActiveRow] = useState(null);
 
-  // ===== FETCH DATOS REALES =====
+  // ===== FETCH MEJORADO =====
   const fetchLiquidaciones = async () => {
     try {
       setLoading(true);
       const res = await axios.get("/api/liquidaciones-pendientes/");
-      setLiquidaciones(res.data);
+      
+      // Aseguramos que siempre sea un array
+      const dataArray = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.results)
+        ? res.data.results
+        : [];
+
+      setLiquidaciones(dataArray);
     } catch (error) {
-      console.error(error);
+      console.error("Error al obtener liquidaciones:", error);
+      setLiquidaciones([]); // fallback seguro
     } finally {
       setLoading(false);
     }
@@ -49,12 +58,17 @@ export default function AprobacionLiquidaciones() {
 
   useEffect(() => { fetchLiquidaciones(); }, []);
 
-  // ===== FILTROS =====
+  // ===== FILTROS MEJORADOS =====
   const filteredLiquidaciones = useMemo(() => {
+    if (!Array.isArray(liquidaciones)) return []; // protección si no es array
+
     return liquidaciones.filter(liq => {
+      const solicitante = liq.solicitante?.toString().toLowerCase() || "";
+      const docs = Array.isArray(liq.documentos) ? liq.documentos : [];
+
       const matchSearch =
-        liq.solicitante.toLowerCase().includes(search.toLowerCase()) ||
-        liq.id.toString().includes(search);
+        solicitante.includes(search.toLowerCase()) ||
+        liq.id?.toString().includes(search);
 
       const matchTipo =
         filterTipo === "Todas" || liq.tipo === filterTipo;
@@ -73,8 +87,8 @@ export default function AprobacionLiquidaciones() {
 
       const matchDoc =
         !docSearch ||
-        liq.documentos?.some(d =>
-          d.toLowerCase().includes(docSearch.toLowerCase())
+        docs.some(d =>
+          d.toString().toLowerCase().includes(docSearch.toLowerCase())
         );
 
       return matchSearch && matchTipo && matchFechaDesde && matchFechaHasta && matchMontoMin && matchMontoMax && matchDoc;
