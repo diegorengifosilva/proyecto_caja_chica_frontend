@@ -184,8 +184,8 @@ export default function LiquidacionesPendientes() {
         {/* Montos por Tipo de Solicitud */}
         <ChartWrapped
           title="Montos por Tipo de Solicitud (S/.)"
-          icon={<ChartBarDecreasing className="w-4 h-4" />}
-          className="h-72"
+          icon={<ChartBarDecreasing className="w-5 h-5" />}
+          className="h-72 sm:h-80"
           tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -206,9 +206,9 @@ export default function LiquidacionesPendientes() {
         {/* Distribución por Tipo */}
         <ChartWrapped
           title="Distribución por Tipo"
-          icon={<ChartColumnIncreasing className="w-4 h-4" />}
-          className="h-72"
-          tooltipFormatter={tooltipFormatter} // Genérico
+          icon={<ChartColumnIncreasing className="w-5 h-5" />}
+          className="h-72 sm:h-80"
+          tooltipFormatter={tooltipFormatter}
         >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataTipo}>
@@ -227,7 +227,7 @@ export default function LiquidacionesPendientes() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-lg mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
           {/* Solicitante */}
           <div className="flex flex-col">
@@ -237,7 +237,7 @@ export default function LiquidacionesPendientes() {
             <select
               value={filtroSolicitante}
               onChange={(e) => setFiltroSolicitante(e.target.value)}
-              className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none w-full sm:w-auto"
             >
               <option value="">Todos</option>
               {solicitantes.map((sol) => (
@@ -254,7 +254,7 @@ export default function LiquidacionesPendientes() {
             <select
               value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value)}
-              className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none"
+              className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none w-full sm:w-auto"
             >
               <option value="">Todos</option>
               {Object.keys(TYPE_COLORS).map((tipo_solicitud) => (
@@ -273,14 +273,14 @@ export default function LiquidacionesPendientes() {
                 type="date"
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
-                className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+                className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
               />
               <span className="text-gray-400 text-xs hidden sm:inline">→</span>
               <input
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
-                className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+                className="border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
               />
             </div>
           </div>
@@ -288,71 +288,51 @@ export default function LiquidacionesPendientes() {
       </div>
 
       {/* Tabla */}
-      <Table
-        headers={[
-          "N° Solicitud",
-          "Tipo",
-          "Monto (S/.)",
-          "Monto ($)",
-          "Fecha",
-          "Concepto",
-          "Estado",
-          "Acción",
-        ]}
-        data={solicitudesFiltradas}
-        emptyMessage="No hay solicitudes en este estado o rango de fechas."
-        renderRow={(s) => (
-          <>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-center">
-              {s.numero_solicitud}
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] ||
-                  "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {s.tipo_solicitud}
-              </span>
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              {s.total_soles ? `S/. ${s.total_soles}` : "-"}
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              {s.total_dolares ? `$ ${s.total_dolares}` : "-"}
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              {s.fecha}
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              {s.concepto_gasto ?? "-"}
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  STATE_CLASSES[s.estado] ||
-                  "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {s.estado}
-              </span>
-            </td>
-            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  handleAccion(s.id, "Presentar Documentación", s)
-                }
-                className="flex items-center gap-1"
-              >
-                <FileText className="w-4 h-4" /> Presentar
-              </Button>
-            </td>
-          </>
-        )}
-      />
+      <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-lg">
+        <Table
+          headers={[
+            "N° Solicitud",
+            "Tipo",
+            "Monto (S/.)",
+            "Monto ($)",
+            "Fecha",
+            "Concepto",
+            "Estado",
+            "Acción",
+          ]}
+          data={solicitudesFiltradas}
+          emptyMessage="No hay solicitudes en este estado o rango de fechas."
+          renderRow={(s) => (
+            <>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-center">{s.numero_solicitud}</td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                <span className={`text-xs px-2 py-1 rounded-full ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>
+                  {s.tipo_solicitud}
+                </span>
+              </td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.fecha}</td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.concepto_gasto ?? "-"}</td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                <span className={`text-xs px-2 py-1 rounded-full ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>
+                  {s.estado}
+                </span>
+              </td>
+              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAccion(s.id, "Presentar Documentación", s)}
+                  className="flex items-center gap-1 rounded-xl px-3 py-1"
+                >
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5" /> Presentar
+                </Button>
+              </td>
+            </>
+          )}
+        />
+      </div>
 
       {/* Modals */}
       {showPresentarModal && (
@@ -365,5 +345,4 @@ export default function LiquidacionesPendientes() {
 
     </div>
   );
-
 }
