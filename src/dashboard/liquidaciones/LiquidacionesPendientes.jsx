@@ -91,7 +91,7 @@ export default function LiquidacionesPendientes() {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
-      <div className="flex-1 flex flex-col w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 lg:py-6">
+      <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
 
         {/* Header */}
         <div className="flex justify-center md:justify-start items-center mb-4 px-1">
