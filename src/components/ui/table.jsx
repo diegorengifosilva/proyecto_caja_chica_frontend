@@ -32,7 +32,7 @@ const Table = ({
 
         {/* Contenedor scrollable horizontal */}
         <div className="w-full flex-1 overflow-x-auto">
-          <table className="w-full table-auto text-sm text-center border-collapse min-w-[600px] sm:min-w-full">
+          <table className="w-full table-auto text-sm text-center border-collapse">
             {/* Cabecera */}
             <thead className="bg-gray-100 text-gray-700 font-medium">
               <tr>
@@ -69,14 +69,17 @@ const Table = ({
                     >
                       {Array.isArray(renderRow(item))
                         ? renderRow(item).map((cell, i) => (
-                            <td key={i} className="px-1 sm:px-2 py-1 sm:py-2 border border-gray-200 whitespace-nowrap">
+                            <td
+                              key={i}
+                              className="px-1 sm:px-2 py-1 sm:py-2 border border-gray-200 break-words truncate max-w-[150px] sm:max-w-[200px]"
+                            >
                               {cell}
                             </td>
                           ))
                         : renderRow(item)}
 
                       {onDeleteRow && (
-                        <td className="relative px-1 sm:px-2 py-1 sm:py-2">
+                        <td className="relative px-1 sm:px-2 py-1 sm:py-2 w-[40px]">
                           <div className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
                             <Button
                               variant="ghost"

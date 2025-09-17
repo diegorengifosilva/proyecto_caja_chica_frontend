@@ -90,19 +90,23 @@ export default function AprobacionLiquidaciones() {
   // -------------------------------
   const filteredLiquidaciones = useMemo(() => {
     if (!Array.isArray(liquidaciones)) return [];
+
     return liquidaciones.filter(liq => {
-      const solicitante = liq.solicitante?.toString().toLowerCase() || "";
+      const solicitante = (liq.solicitante_nombre || liq.solicitante || "").toLowerCase();
       const docs = Array.isArray(liq.documentos) ? liq.documentos : [];
 
+      // Búsqueda global: por ID, nombre del solicitante o documento
       const matchSearch =
+        (!search || liq.id?.toString().includes(search)) ||
         solicitante.includes(search.toLowerCase()) ||
-        liq.id?.toString().includes(search);
+        docs.some(d => d.toString().toLowerCase().includes(search.toLowerCase()));
 
+      // Filtros por tipo, fechas y monto
       const matchTipo = filterTipo === "Todas" || liq.tipo === filterTipo;
       const matchFechaDesde = !fechaDesde || new Date(liq.fecha) >= new Date(fechaDesde);
       const matchFechaHasta = !fechaHasta || new Date(liq.fecha) <= new Date(fechaHasta);
-      const matchMontoMin = !montoMin || liq.monto >= parseFloat(montoMin);
-      const matchMontoMax = !montoMax || liq.monto <= parseFloat(montoMax);
+      const matchMontoMin = !montoMin || (liq.monto_soles ?? liq.monto) >= parseFloat(montoMin);
+      const matchMontoMax = !montoMax || (liq.monto_soles ?? liq.monto) <= parseFloat(montoMax);
       const matchDoc = !docSearch || docs.some(d => d.toString().toLowerCase().includes(docSearch.toLowerCase()));
 
       return matchSearch && matchTipo && matchFechaDesde && matchFechaHasta && matchMontoMin && matchMontoMax && matchDoc;

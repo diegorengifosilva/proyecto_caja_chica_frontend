@@ -118,7 +118,6 @@ export default function LiquidacionesPendientes() {
                 gradient={kpi.gradient}
                 tooltip={kpi.tooltip}
                 decimals={Number.isInteger(kpi.value) ? 0 : 2}
-                className="text-xs sm:text-sm md:text-base w-full p-3 sm:p-4"
               />
             </div>
           ))}
@@ -131,7 +130,7 @@ export default function LiquidacionesPendientes() {
             title="Montos por Tipo de Solicitud (S/.)"
             icon={<ChartBarDecreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
             tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
-            className="flex-1 w-full h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
+            className="flex-1 w-full min-w-0 h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dataMontoPorTipo} layout="vertical" margin={{ left: 10 }}>
@@ -150,7 +149,7 @@ export default function LiquidacionesPendientes() {
             title="Distribución por Tipo"
             icon={<ChartColumnIncreasing className="w-4 sm:w-5 md:w-6 lg:w-7 h-4 sm:h-5 md:h-6 lg:h-7" />}
             tooltipFormatter={tooltipFormatter}
-            className="flex-1 w-full h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
+            className="flex-1 w-full min-w-0 h-[25vw] sm:h-[20vw] md:h-[18vw] xl:h-[28rem]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dataTipo}>
@@ -206,8 +205,8 @@ export default function LiquidacionesPendientes() {
           </div>
         </div>
 
-        {/* Tabla scrollable y responsive */}
-        <div className="overflow-x-auto w-full flex-1">
+        {/* Tabla scrollable */}
+        <div className="overflow-x-auto w-full flex-1 min-w-0">
           <Table
             headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
             data={solicitudesFiltradas}
@@ -246,4 +245,5 @@ export default function LiquidacionesPendientes() {
       </div>
     </div>
   );
+
 }
