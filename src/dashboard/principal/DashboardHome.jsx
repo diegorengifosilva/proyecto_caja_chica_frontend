@@ -101,7 +101,7 @@ const DashboardHome = () => {
         </header>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full justify-items-stretch">
           {kpis.map((kpi) => (
             <div key={kpi.label} className="flex-1">
               <KpiCard
@@ -117,17 +117,19 @@ const DashboardHome = () => {
           ))}
         </div>
 
-
         {/* Gráficos */}
         <div className="flex flex-col lg:flex-row gap-6 mb-6 w-full">
+
+          {/* Distribución por tipo de solicitud */}
           <ChartWrapped
             title="Distribución por tipo de solicitud"
             icon={<PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />}
             tooltipFormatter={tooltipFormatter}
-            className="flex-1 h-64 sm:h-72 md:h-80 w-full"
+            className="flex-1 h-72 sm:h-80 md:h-96 xl:h-[28rem] w-full"
           >
-            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
-              <div className="flex-1 min-h-[180px]">
+            <div className="flex flex-col lg:flex-row gap-6 h-full items-stretch">
+              {/* Gráfico */}
+              <div className="flex-1 min-h-[200px] sm:min-h-[240px] md:min-h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RePieChart>
                     <Pie
@@ -147,10 +149,12 @@ const DashboardHome = () => {
                   </RePieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full lg:w-40 flex-shrink-0 mt-4 lg:mt-0">
+
+              {/* Leyenda */}
+              <div className="w-full lg:w-44 flex-shrink-0 mt-4 lg:mt-0">
                 {datosTiposSolicitud.map((t) => (
-                  <div key={t.name} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
-                    <span style={{ width: 12, height: 12, background: TYPE_COLORS[t.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
+                  <div key={t.name} className="flex items-center gap-2 text-xs sm:text-sm md:text-base text-gray-700 mb-2">
+                    <span style={{ width: 14, height: 14, background: TYPE_COLORS[t.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
                     <span className="font-medium">{t.name}</span>
                     <span className="text-gray-500 ml-1">({t.value})</span>
                   </div>
@@ -159,14 +163,16 @@ const DashboardHome = () => {
             </div>
           </ChartWrapped>
 
+          {/* Estado de solicitudes */}
           <ChartWrapped
             title="Estado de solicitudes"
             icon={<BarChart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />}
             tooltipFormatter={radialTooltipFormatter}
-            className="flex-1 h-64 sm:h-72 md:h-80 w-full"
+            className="flex-1 h-72 sm:h-80 md:h-96 xl:h-[28rem] w-full"
           >
-            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
-              <div className="flex-1 min-h-[180px]">
+            <div className="flex flex-col lg:flex-row gap-6 h-full items-stretch">
+              {/* Gráfico */}
+              <div className="flex-1 min-h-[200px] sm:min-h-[240px] md:min-h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="95%" barSize={14} data={datosEstadosSolicitud}>
                     <RadialBar minAngle={15} background clockWise dataKey="value" cornerRadius={6}>
@@ -178,10 +184,12 @@ const DashboardHome = () => {
                   </RadialBarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full lg:w-40 flex-shrink-0 mt-4 lg:mt-0">
+
+              {/* Leyenda */}
+              <div className="w-full lg:w-44 flex-shrink-0 mt-4 lg:mt-0">
                 {datosEstadosSolicitud.map((e) => (
-                  <div key={e.name} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
-                    <span style={{ width: 12, height: 12, background: STATE_COLORS[e.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
+                  <div key={e.name} className="flex items-center gap-2 text-xs sm:text-sm md:text-base text-gray-700 mb-2">
+                    <span style={{ width: 14, height: 14, background: STATE_COLORS[e.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
                     <span className="font-medium">{e.name}</span>
                     <span className="text-gray-500 ml-1">({e.value})</span>
                   </div>
@@ -189,26 +197,46 @@ const DashboardHome = () => {
               </div>
             </div>
           </ChartWrapped>
+
         </div>
 
         {/* Accesos rápidos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 w-full">
           {[
             { label: "Nueva Solicitud", icon: FilePlus, url: "/nueva-solicitud", bg: "blue", desc: "Registra una nueva solicitud de gasto." },
             { label: "Ver Liquidaciones", icon: PieChart, url: "/liquidaciones", bg: "emerald", desc: "Consulta el estado de tus liquidaciones." },
             { label: "Reportes", icon: BarChart, url: "/reportes", bg: "indigo", desc: "Estadísticas y reportes ejecutivos." },
           ].map((btn) => (
-            <div
+            <button
               key={btn.label}
               onClick={() => handleNavegar(btn.url)}
-              className={`group bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
+              className={`
+                group relative flex flex-col items-center justify-center rounded-2xl p-5 bg-white
+                border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300
+                transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-${btn.bg}-400 focus:ring-offset-2
+              `}
             >
-              <div className={`rounded-full p-3 mb-3 bg-${btn.bg}-50 group-hover:bg-${btn.bg}-100 transition`}>
-                <btn.icon size={24} className={`text-${btn.bg}-600`} />
+              {/* Icono con animación */}
+              <div className={`
+                flex items-center justify-center rounded-full p-4 mb-3
+                bg-${btn.bg}-50 group-hover:bg-gradient-to-br group-hover:from-${btn.bg}-400 group-hover:to-${btn.bg}-200
+                transition-all duration-500 transform group-hover:scale-110
+              `}>
+                <btn.icon size={28} className={`text-${btn.bg}-600 group-hover:text-white transition-colors duration-500`} />
               </div>
-              <h4 className="font-semibold text-gray-800 text-base text-center">{btn.label}</h4>
-              <p className="text-sm text-gray-500 text-center mt-1">{btn.desc}</p>
-            </div>
+
+              {/* Texto principal */}
+              <h4 className="text-gray-800 font-semibold text-lg text-center group-hover:text-gray-900 transition-colors duration-300">{btn.label}</h4>
+
+              {/* Descripción */}
+              <p className="text-gray-500 text-sm text-center mt-1 group-hover:text-gray-700 transition-colors duration-300">{btn.desc}</p>
+
+              {/* Efecto sutil de brillo */}
+              <span className={`
+                absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent
+                opacity-10 group-hover:opacity-100 pointer-events-none transition-opacity duration-500
+              `} />
+            </button>
           ))}
         </div>
 
