@@ -1,15 +1,15 @@
 // src/dashboard/aprobacion_liquidacion/AprobacionLiquidaciones.jsx
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Check, X, CircleX, CheckCircle, DollarSign, Wallet, FileSearch } from "lucide-react";
-import axios from "@/services/api";
+import api from "@/services/api";
 import ConfirmacionModal from "./ConfirmacionModal";
 import DetalleLiquidacionModal from "./LiquidacionDetalleModal";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, PieChart, Pie } from "recharts";
 import { motion } from "framer-motion";
-import { Tooltip as ReactTooltip } from "react-tooltip";
 import "tippy.js/dist/tippy.css";
 import { STATE_CLASSES, STATE_COLORS, TIPO_SOLICITUD_CLASSES, TYPE_COLORS } from "@/components/ui/colors";
 import KpiCard from "@/components/ui/KpiCard";
@@ -19,6 +19,7 @@ import ChartWrapped from "@/components/ui/ChartWrapped";
 const TASA_CAMBIO = 3.52;
 
 export default function AprobacionLiquidaciones() {
+  const { authUser: user, logout } = useAuth();
   const [liquidaciones, setLiquidaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -34,59 +35,62 @@ export default function AprobacionLiquidaciones() {
   const [accion, setAccion] = useState("");
   const [activeRow, setActiveRow] = useState(null);
 
-  // ===== FETCH MEJORADO =====
-  const fetchLiquidaciones = async () => {
+  // -------------------------------
+  // FETCH FILTRADO POR USUARIO Y ESTADO
+  // -------------------------------
+  const fetchLiquidaciones = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await axios.get("boleta/liquidaciones_pendientes");
-      
-      // Aseguramos que siempre sea un array
-      const dataArray = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.results)
-        ? res.data.results
-        : [];
-
-      setLiquidaciones(dataArray);
-    } catch (error) {
-      console.error("Error al obtener liquidaciones:", error);
-      setLiquidaciones([]); // fallback seguro
+      const token = localStorage.getItem("access_token");
+      const { data } = await api.get("/boleta/liquidaciones_pendientes/", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          destinatario_id: user.id,
+          estado: "Liquidación enviada para Aprobación",
+        },
+      });
+      setLiquidaciones(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error al obtener liquidaciones:", err);
+      if (err?.response?.status === 401) logout();
+      setLiquidaciones([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, logout]);
 
-  useEffect(() => { fetchLiquidaciones(); }, []);
+  useEffect(() => {
+    fetchLiquidaciones();
+  }, [fetchLiquidaciones]);
 
-  // ===== FILTROS MEJORADOS =====
-const filteredLiquidaciones = useMemo(() => {
-  if (!Array.isArray(liquidaciones)) return [];
+  // -------------------------------
+  // FILTROS LOCALES
+  // -------------------------------
+  const filteredLiquidaciones = useMemo(() => {
+    if (!Array.isArray(liquidaciones)) return [];
+    return liquidaciones.filter(liq => {
+      const solicitante = liq.solicitante?.toString().toLowerCase() || "";
+      const docs = Array.isArray(liq.documentos) ? liq.documentos : [];
 
-  return liquidaciones.filter(liq => {
-    const solicitante = liq.solicitante?.toString().toLowerCase() || "";
-    const destinatario = liq.destinatario?.id || liq.destinatario?.username || "";
-    const docs = Array.isArray(liq.documentos) ? liq.documentos : [];
+      const matchSearch =
+        solicitante.includes(search.toLowerCase()) ||
+        liq.id?.toString().includes(search);
 
-    const matchSearch =
-      solicitante.includes(search.toLowerCase()) ||
-      liq.id?.toString().includes(search);
+      const matchTipo = filterTipo === "Todas" || liq.tipo === filterTipo;
+      const matchFechaDesde = !fechaDesde || new Date(liq.fecha) >= new Date(fechaDesde);
+      const matchFechaHasta = !fechaHasta || new Date(liq.fecha) <= new Date(fechaHasta);
+      const matchMontoMin = !montoMin || liq.monto >= parseFloat(montoMin);
+      const matchMontoMax = !montoMax || liq.monto <= parseFloat(montoMax);
+      const matchDoc = !docSearch || docs.some(d => d.toString().toLowerCase().includes(docSearch.toLowerCase()));
 
-    const matchTipo = filterTipo === "Todas" || liq.tipo === filterTipo;
-    const matchFechaDesde = !fechaDesde || new Date(liq.fecha) >= new Date(fechaDesde);
-    const matchFechaHasta = !fechaHasta || new Date(liq.fecha) <= new Date(fechaHasta);
-    const matchMontoMin = !montoMin || liq.monto >= parseFloat(montoMin);
-    const matchMontoMax = !montoMax || liq.monto <= parseFloat(montoMax);
-    const matchDoc = !docSearch || docs.some(d => d.toString().toLowerCase().includes(docSearch.toLowerCase()));
+      return matchSearch && matchTipo && matchFechaDesde && matchFechaHasta && matchMontoMin && matchMontoMax && matchDoc;
+    });
+  }, [liquidaciones, search, filterTipo, fechaDesde, fechaHasta, montoMin, montoMax, docSearch]);
 
-    // ===== FILTRO POR ESTADO Y DESTINATARIO =====
-    const matchEstado = liq.estado === "Liquidación enviada para Aprobación";
-    const matchDestinatario = destinatario === user.id || destinatario === user.username;
-
-    return matchSearch && matchTipo && matchFechaDesde && matchFechaHasta && matchMontoMin && matchMontoMax && matchDoc && matchEstado && matchDestinatario;
-  });
-}, [liquidaciones, search, filterTipo, fechaDesde, fechaHasta, montoMin, montoMax, docSearch, user]);
-
-  // ===== KPIs =====
+  // -------------------------------
+  // KPIs
+  // -------------------------------
   const kpiData = useMemo(() => {
     const counts = { Aprobado: 0, Rechazado: 0 };
     let total = liquidaciones.length;
@@ -96,20 +100,26 @@ const filteredLiquidaciones = useMemo(() => {
     return { Total: total, Aprobadas: counts.Aprobado, Rechazadas: counts.Rechazado, TotalSoles: totalSoles, TotalDolares: totalDolares };
   }, [liquidaciones]);
 
-  // ===== ACCIONES =====
+  // -------------------------------
+  // ACCIONES
+  // -------------------------------
   const handleAccion = async () => {
     if (!selectedLiquidacion) return;
     try {
-      const res = await axios.post(`/api/liquidaciones/${selectedLiquidacion.id}/accion/`, { accion });
+      const res = await api.post(`/boleta/liquidaciones/${selectedLiquidacion.id}/accion/`, { accion });
       setLiquidaciones(prev => prev.map(l => (l.id === selectedLiquidacion.id ? res.data : l)));
       setConfirmModalOpen(false);
       setDetalleModalOpen(false);
       setActiveRow(selectedLiquidacion.id);
       setTimeout(() => setActiveRow(null), 1500);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // ===== DATOS PARA GRÁFICOS =====
+  // -------------------------------
+  // DATOS PARA GRÁFICOS
+  // -------------------------------
   const pieChartData = useMemo(() =>
     Object.entries(filteredLiquidaciones.reduce((acc, liq) => { acc[liq.estado] = (acc[liq.estado] || 0) + 1; return acc; }, {}))
       .map(([name, value]) => ({ name, value })), [filteredLiquidaciones]);
@@ -120,6 +130,11 @@ const filteredLiquidaciones = useMemo(() => {
 
   const formatSoles = (value) => Number(value).toLocaleString("es-PE", { minimumFractionDigits: 2 });
   const formatDolares = (value) => (value / TASA_CAMBIO).toLocaleString("en-US", { minimumFractionDigits: 2 });
+
+  // -------------------------------
+  // RENDER
+  // -------------------------------
+  if (loading) return <p className="text-center py-10 animate-pulse">Cargando...</p>;
 
   return (
     <div className="p-6 space-y-6">
@@ -133,49 +148,39 @@ const filteredLiquidaciones = useMemo(() => {
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
         {[
-          { label: "Total", value: kpiData.Total, gradient: "linear-gradient(135deg, #6366f1cc, #818cf899)", icon: Wallet, tooltip: "Cantidad total de liquidaciones." },
-          { label: "Aprobadas", value: kpiData.Aprobadas, gradient: "linear-gradient(135deg, #16a34acc, #22c55e99)", icon: CheckCircle, tooltip: "Liquidaciones aprobadas." },
-          { label: "Rechazadas", value: kpiData.Rechazadas, gradient: "linear-gradient(135deg, #ef4444cc, #f8717199)", icon: CircleX, tooltip: "Liquidaciones rechazadas." },
-          { label: "Total S/", value: kpiData.TotalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: Wallet, tooltip: "Monto total en soles." },
-          { label: "Total $", value: kpiData.TotalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto total en dólares." },
+          { label: "Total", value: kpiData.Total, gradient: "linear-gradient(135deg, #6366f1cc, #818cf899)", icon: Wallet },
+          { label: "Aprobadas", value: kpiData.Aprobadas, gradient: "linear-gradient(135deg, #16a34acc, #22c55e99)", icon: CheckCircle },
+          { label: "Rechazadas", value: kpiData.Rechazadas, gradient: "linear-gradient(135deg, #ef4444cc, #f8717199)", icon: CircleX },
+          { label: "Total S/", value: kpiData.TotalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: Wallet },
+          { label: "Total $", value: kpiData.TotalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign },
         ].map(kpi => <KpiCard key={kpi.label} {...kpi} decimals={kpi.label.includes("$") ? 2 : 0} />)}
       </div>
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Donut */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <ChartWrapped title="Distribución por Estado" className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieChartData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={5}>
-                  {pieChartData.map((entry, index) => <Cell key={index} fill={STATE_COLORS[entry.name]} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <div className="text-sm text-gray-500">Total</div>
-              <div className="text-xl font-bold">{filteredLiquidaciones.length}</div>
-            </div>
-          </ChartWrapped>
-        </motion.div>
+        <ChartWrapped title="Distribución por Estado" className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={pieChartData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={5}>
+                {pieChartData.map((entry, index) => <Cell key={index} fill={STATE_COLORS[entry.name]} />)}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartWrapped>
 
-        {/* Barras */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
-          <ChartWrapped title="Distribución por Tipo" className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barChartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                <XAxis dataKey="name" tick={{ fill: "#6b7280", fontWeight: 500 }} axisLine={{ stroke: "#d1d5db" }} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: "#6b7280", fontWeight: 500 }} axisLine={{ stroke: "#d1d5db" }} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                  {barChartData.map((entry, index) => <Cell key={index} fill={TYPE_COLORS[entry.name]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartWrapped>
-        </motion.div>
+        <ChartWrapped title="Distribución por Tipo" className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barChartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+              <XAxis dataKey="name" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                {barChartData.map((entry, index) => <Cell key={index} fill={TYPE_COLORS[entry.name]} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartWrapped>
       </div>
 
       {/* Filtros */}
@@ -191,11 +196,8 @@ const filteredLiquidaciones = useMemo(() => {
           {["Todas", "Viáticos", "Movilidad", "Compras", "Otros gastos"].map(tipo => (
             <Badge
               key={tipo}
-              className="px-4 py-1 rounded-full cursor-pointer transition-transform hover:scale-105"
-              style={{
-                backgroundColor: filterTipo === tipo ? TYPE_COLORS[tipo] : "#f3f4f6",
-                color: filterTipo === tipo ? "#fff" : "#000",
-              }}
+              className="px-4 py-1 rounded-full cursor-pointer"
+              style={{ backgroundColor: filterTipo === tipo ? TYPE_COLORS[tipo] : "#f3f4f6", color: filterTipo === tipo ? "#fff" : "#000" }}
               onClick={() => setFilterTipo(tipo)}
             >
               {tipo}
@@ -206,42 +208,33 @@ const filteredLiquidaciones = useMemo(() => {
 
       {/* Tabla */}
       <CardContent>
-        {loading ? (
-          <p className="text-center py-10 animate-pulse">Cargando...</p>
-        ) : (
-          <Table
-            headers={["Solicitante","Tipo","Fecha","Monto S/","Monto $","Estado","Documentos","Acciones"]}
-            data={filteredLiquidaciones}
-            emptyMessage="No hay liquidaciones."
-            activeRow={activeRow}
-            renderRow={(liq) => (
-              <>
-                <td title={liq.observaciones} className="px-2 sm:px-4 py-2 sm:py-3 text-center">{liq.solicitante}</td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center"><Badge className={`${TIPO_SOLICITUD_CLASSES[liq.tipo] || "bg-gray-200 text-gray-700"} px-3 py-1 rounded-full`}>{liq.tipo}</Badge></td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{liq.fecha}</td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">S/ {formatSoles(liq.monto)}</td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">$ {formatDolares(liq.monto)}</td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center"><Badge className={`${STATE_CLASSES[liq.estado] || "bg-gray-200 text-gray-700"} px-3 py-1 rounded-full`}>{liq.estado}</Badge></td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                  {liq.documentos?.map((d, i) => (
-                    <Badge key={i} variant="outline" className={`mr-1 ${docSearch && d.toLowerCase().includes(docSearch.toLowerCase()) ? "bg-yellow-300 font-medium shadow-md" : ""}`}>{d}</Badge>
-                  ))}
-                </td>
-                <td className="px-2 sm:px-4 py-2 sm:py-3 flex gap-1 justify-center">
-                  <button data-tooltip-id="tooltip" data-tooltip-content="Ver Detalle" className="bg-indigo-500 hover:bg-indigo-600 text-white p-2 rounded-lg shadow-md" onClick={() => { setSelectedLiquidacion(liq); setDetalleModalOpen(true); }}><Eye size={16} /></button>
-                  <button data-tooltip-id="tooltip" data-tooltip-content="Aprobar" className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg shadow-md" onClick={() => { setSelectedLiquidacion(liq); setAccion("aprobar"); setConfirmModalOpen(true); }}><Check size={16} /></button>
-                  <button data-tooltip-id="tooltip" data-tooltip-content="Rechazar" className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg shadow-md" onClick={() => { setSelectedLiquidacion(liq); setAccion("rechazar"); setConfirmModalOpen(true); }}><X size={16} /></button>
-                </td>
-              </>
-            )}
-          />
-        )}
+        <Table
+          headers={["Solicitante","Tipo","Fecha","Monto S/","Monto $","Estado","Documentos","Acciones"]}
+          data={filteredLiquidaciones}
+          emptyMessage="No hay liquidaciones."
+          activeRow={activeRow}
+          renderRow={liq => (
+            <>
+              <td>{liq.solicitante}</td>
+              <td><Badge className={`${TIPO_SOLICITUD_CLASSES[liq.tipo] || "bg-gray-200 text-gray-700"} px-3 py-1 rounded-full`}>{liq.tipo}</Badge></td>
+              <td>{liq.fecha}</td>
+              <td>S/ {formatSoles(liq.monto)}</td>
+              <td>$ {formatDolares(liq.monto)}</td>
+              <td><Badge className={`${STATE_CLASSES[liq.estado] || "bg-gray-200 text-gray-700"} px-3 py-1 rounded-full`}>{liq.estado}</Badge></td>
+              <td>{liq.documentos?.map((d, i) => <Badge key={i} variant="outline" className="mr-1">{d}</Badge>)}</td>
+              <td className="flex gap-1 justify-center">
+                <button onClick={() => { setSelectedLiquidacion(liq); setDetalleModalOpen(true); }}><Eye size={16} /></button>
+                <button onClick={() => { setSelectedLiquidacion(liq); setAccion("aprobar"); setConfirmModalOpen(true); }}><Check size={16} /></button>
+                <button onClick={() => { setSelectedLiquidacion(liq); setAccion("rechazar"); setConfirmModalOpen(true); }}><X size={16} /></button>
+              </td>
+            </>
+          )}
+        />
       </CardContent>
 
       {/* Modales */}
       {detalleModalOpen && selectedLiquidacion && <DetalleLiquidacionModal open={detalleModalOpen} liquidacion={selectedLiquidacion} onClose={() => setDetalleModalOpen(false)} />}
       <ConfirmacionModal open={confirmModalOpen} onClose={() => setConfirmModalOpen(false)} accion={accion} onConfirm={handleAccion} liquidacion={selectedLiquidacion} />
-      <ReactTooltip id="tooltip" place="top" effect="solid" />
     </div>
   );
 }

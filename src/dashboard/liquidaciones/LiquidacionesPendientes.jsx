@@ -5,7 +5,7 @@ import { FileText, FolderKanban, DollarSign, Clock, ChartBarDecreasing, ChartCol
 import PresentarDocumentacionModal from "./PresentarDocumentacionModal";
 import axios from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import { TYPE_COLORS, TIPO_SOLICITUD_CLASSES, STATE_CLASSES } from "@/components/ui/colors";
 import KpiCard from "@/components/ui/KpiCard";
 import Table from "@/components/ui/table";
@@ -100,9 +100,9 @@ export default function LiquidacionesPendientes() {
           </h2>
         </div>
 
-        {/* KPIs: apilados en móvil, 2 cols en sm, 4 cols en md */}
+        {/* KPIs */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 w-full mb-6">
-          {[
+          {[ 
             { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
             { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
             { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
@@ -122,7 +122,7 @@ export default function LiquidacionesPendientes() {
           ))}
         </div>
 
-        {/* Gráficos: vertical en móvil, horizontal en lg */}
+        {/* Gráficos */}
         <div className="flex flex-col gap-4 sm:gap-6 mb-6 w-full lg:flex-row">
           <ChartWrapped
             title="Montos por Tipo de Solicitud (S/.)"
@@ -163,7 +163,7 @@ export default function LiquidacionesPendientes() {
           </ChartWrapped>
         </div>
 
-        {/* Filtros: vertical en móvil, horizontal en sm+ */}
+        {/* Filtros */}
         <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
             {/* Solicitante */}
@@ -222,7 +222,7 @@ export default function LiquidacionesPendientes() {
                   <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
                 </td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
-                  <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center gap-1 px-2 py-1">
+                  <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-2">
                     <FileText className="w-4 h-4" /> Presentar
                   </Button>
                 </td>
