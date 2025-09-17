@@ -105,7 +105,7 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95%] max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-lg animate-fadeIn">
+      <DialogContent className="max-w-4xl w-[95%] max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-lg animate-fadeIn p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-800">
             <FileText className="w-5 h-5" />
@@ -123,7 +123,7 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
         ) : (
           <>
             <Tabs defaultValue="basicos" className="w-full mt-2">
-              <TabsList className="grid grid-cols-3 gap-2 mb-4">
+              <TabsList className="grid grid-cols-3 gap-2 mb-4 text-sm sm:text-base">
                 <TabsTrigger value="basicos" className="flex items-center gap-1">
                   <FolderClosed className="w-4 h-4" /> Básicos
                 </TabsTrigger>
@@ -135,8 +135,8 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="basicos" className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <TabsContent value="basicos" className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <InfoCard label="N° Solicitud" value={solicitud.numero_solicitud} />
                   <InfoCard label="Fecha" value={solicitud.fecha} />
                   <InfoCard label="Destinatario" value={solicitud.destinatario_nombre || "-"} />
@@ -165,7 +165,6 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                 </div>
               </TabsContent>
 
-
               <TabsContent value="adjuntos">
                 <p className="text-gray-500">Aquí se mostrarán los documentos adjuntos.</p>
               </TabsContent>
@@ -174,15 +173,13 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
             {/* Botones de acción según rol y estado */}
             <div className="flex justify-end mt-6 gap-3 flex-wrap">
               {canEnviar() && (
-                <div className="flex justify-end mt-6">
-                  <Button
-                    onClick={() => { setAccion("enviar"); setConfirmOpen(true); }}
-                    disabled={updating}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-2 rounded-lg shadow-lg font-semibold transition-all duration-200"
-                  >
-                    {updating && accion === "enviar" ? "Procesando..." : "Enviar Solicitud"}
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => { setAccion("enviar"); setConfirmOpen(true); }}
+                  disabled={updating}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-2 rounded-lg shadow-lg font-semibold transition-all duration-200"
+                >
+                  {updating && accion === "enviar" ? "Procesando..." : "Enviar Solicitud"}
+                </Button>
               )}
             </div>
 
@@ -202,23 +199,17 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                       onClick={async () => {
                         setUpdating(true);
                         try {
-                          // PATCH al endpoint de cambio de estado
                           const { data } = await axios.patch(
                             `/boleta/mis_solicitudes/${solicitud.id}/estado/`,
                             { estado: "Pendiente para Atención" }
                           );
-
-                          // Actualizar el estado local
                           setSolicitud(prev => ({
                             ...prev,
                             estado: data.solicitud?.estado || "Pendiente para Atención"
                           }));
-
-                          // Emitir evento para que dashboard se refresque
                           EventBus.emit("solicitudEnviada", {
                             numero_solicitud: data.solicitud?.numero_solicitud || solicitud.numero_solicitud
                           });
-
                           setConfirmOpen(false);
                           setAccion(null);
                         } catch (error) {
