@@ -17,33 +17,34 @@ export default function SubirArchivoModal({
   const [cargando, setCargando] = useState(false);
   const [errorOCR, setErrorOCR] = useState(null);
   const [totalManual, setTotalManual] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const VALID_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+  // Detectar si es móvil o tablet
+  useEffect(() => {
+    const checkMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    setIsMobile(checkMobile);
+  }, []);
 
   const handleArchivoChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    // Validar tamaño
-    if (file.size > MAX_FILE_SIZE) {
-      alert("⚠️ El archivo excede los 5MB permitidos.");
-      return;
-    }
-
-    // Validar tipo
-    if (!VALID_TYPES.includes(file.type)) {
-      if (file.type === "image/heic") {
-        alert("⚠️ El formato HEIC no es soportado. Convierte la foto a JPG o PNG.");
-      } else {
-        alert("⚠️ Formato no válido. Solo se permiten JPG, PNG y PDF.");
+    if (file) {
+      // Validar tamaño máximo de 10MB
+      if (file.size > 10 * 1024 * 1024) {
+        alert("⚠️ El archivo supera el límite de 10 MB. Por favor selecciona uno más liviano.");
+        return;
       }
-      return;
-    }
 
-    setArchivo(file);
-    setErrorOCR(null);
-    setTotalManual("");
+      // Validar tipo de archivo
+      const validTypes = ["image/jpeg", "image/png", "application/pdf"];
+      if (!validTypes.includes(file.type)) {
+        alert("⚠️ Solo se permiten imágenes JPG/PNG o archivos PDF.");
+        return;
+      }
+
+      setArchivo(file);
+      setErrorOCR(null);
+      setTotalManual("");
+    }
   };
 
   const handleProcesar = async () => {
@@ -124,7 +125,7 @@ export default function SubirArchivoModal({
 
           {/* Botones de carga */}
           <div className="flex flex-col sm:flex-row gap-2">
-            {/* Cámara */}
+            {/* Botón Cámara */}
             <label className="flex-1 cursor-pointer">
               <input
                 type="file"
@@ -138,11 +139,11 @@ export default function SubirArchivoModal({
               </span>
             </label>
 
-            {/* Archivo */}
+            {/* Botón Archivo */}
             <label className="flex-1 cursor-pointer">
               <input
                 type="file"
-                accept="image/jpeg,image/png,application/pdf"
+                accept="image/*,application/pdf"
                 onChange={handleArchivoChange}
                 style={{ display: "none" }}
               />
