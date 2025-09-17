@@ -72,7 +72,7 @@ const MisSolicitudes = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-[95%] max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-6xl w-[95%] max-h-[90vh] overflow-y-auto bg-white rounded-xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-800">
             <FileText className="w-6 h-6" />
@@ -81,13 +81,13 @@ const MisSolicitudes = ({ open, onClose }) => {
         </DialogHeader>
 
         {/* Filtros */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
             <label className="text-sm font-medium">Estado:</label>
             <select
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
-              className="border rounded-md px-2 py-1 text-sm"
+              className="border rounded-md px-2 py-1 text-sm w-full sm:w-auto"
             >
               <option value="Todos">Todos</option>
               {Object.keys(STATE_CLASSES).map((estado, idx) => (
@@ -98,84 +98,86 @@ const MisSolicitudes = ({ open, onClose }) => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
             <label className="text-sm font-medium">Desde:</label>
             <input
               type="date"
               value={fechaInicio}
               onChange={(e) => setFechaInicio(e.target.value)}
-              className="border rounded-md px-2 py-1 text-sm"
+              className="border rounded-md px-2 py-1 text-sm w-full sm:w-auto"
             />
             <label className="text-sm font-medium">Hasta:</label>
             <input
               type="date"
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
-              className="border rounded-md px-2 py-1 text-sm"
+              className="border rounded-md px-2 py-1 text-sm w-full sm:w-auto"
             />
           </div>
         </div>
 
-        {/* Tabla */}
-        <Table
-          headers={[
-            "N° Solicitud",
-            "Tipo",
-            "Monto (S/.)",
-            "Monto ($)",
-            "Fecha",
-            "Concepto",
-            "Estado",
-            "Acción",
-          ]}
-          data={solicitudesFiltradas}
-          emptyMessage="No hay solicitudes en este estado o rango de fechas."
-          renderRow={(s) => (
-            <>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-center">
-                {s.numero_solicitud}
-              </td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  {s.tipo_solicitud}
-                </span>
-              </td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                {s.total_soles ? `S/. ${s.total_soles}` : "-"}
-              </td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                {s.total_dolares ? `$ ${s.total_dolares}` : "-"}
-              </td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.fecha}</td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                {s.concepto_gasto ?? "-"}
-              </td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  {s.estado}
-                </span>
-              </td>
-              <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAccion(s.id, "Ver Detalle", s)}
-                  className="flex items-center gap-1"
-                >
-                  <Eye className="w-4 h-4" /> Detalle
-                </Button>
-              </td>
-            </>
-          )}
-        />
+        {/* Tabla con scroll horizontal en móviles */}
+        <div className="overflow-x-auto">
+          <Table
+            headers={[
+              "N° Solicitud",
+              "Tipo",
+              "Monto (S/.)",
+              "Monto ($)",
+              "Fecha",
+              "Concepto",
+              "Estado",
+              "Acción",
+            ]}
+            data={solicitudesFiltradas}
+            emptyMessage="No hay solicitudes en este estado o rango de fechas."
+            renderRow={(s) => (
+              <>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-center">
+                  {s.numero_solicitud}
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {s.tipo_solicitud}
+                  </span>
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                  {s.total_soles ? `S/. ${s.total_soles}` : "-"}
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                  {s.total_dolares ? `$ ${s.total_dolares}` : "-"}
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">{s.fecha}</td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                  {s.concepto_gasto ?? "-"}
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {s.estado}
+                  </span>
+                </td>
+                <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAccion(s.id, "Ver Detalle", s)}
+                    className="flex items-center gap-1 w-full sm:w-auto justify-center"
+                  >
+                    <Eye className="w-4 h-4" /> Detalle
+                  </Button>
+                </td>
+              </>
+            )}
+          />
+        </div>
 
         {/* Modal DetalleSolicitud */}
         {detalleOpen && solicitudSeleccionada && (
