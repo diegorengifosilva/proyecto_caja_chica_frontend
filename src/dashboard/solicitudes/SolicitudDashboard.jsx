@@ -276,7 +276,7 @@ export default function SolicitudDashboard() {
             tooltipFormatter={tooltipFormatter}
             className="w-full h-56 sm:h-64 md:h-80 xl:h-[28rem]"
           >
-            <div className="flex flex-col w-full h-full min-h-[160px] sm:min-h-[200px] md:min-h-[250px] ">
+            <div className="flex flex-col w-full h-full min-h-[160px] sm:min-h-[200px] md:min-h-[300px] ">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.chartAreaMes}>
                   <defs>
