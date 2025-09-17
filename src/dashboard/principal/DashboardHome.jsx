@@ -86,7 +86,7 @@ const DashboardHome = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2"
+            className="text-lg sm:text-3xl md:text-4xl font-bold text-gray-900 flex items-center gap-2"
           >
             {getSaludo()}, {user?.nombre ? `${user.nombre} ${user.apellido || ""}` : "Usuario"} 👋
           </motion.h1>
@@ -101,7 +101,7 @@ const DashboardHome = () => {
         </header>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-6 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
           {kpis.map((kpi) => (
             <KpiCard
               key={kpi.label}
@@ -117,16 +117,15 @@ const DashboardHome = () => {
         </div>
 
         {/* Gráficos */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6 w-full">
-          {/* Tipo de solicitud */}
+        <div className="flex flex-col lg:flex-row gap-6 mb-6 w-full">
           <ChartWrapped
             title="Distribución por tipo de solicitud"
             icon={<PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />}
             tooltipFormatter={tooltipFormatter}
-            className="flex-1 h-56 sm:h-64 md:h-72 w-full"
+            className="flex-1 h-64 sm:h-72 md:h-80 w-full"
           >
-            <div className="flex flex-col lg:flex-row gap-2 h-full items-stretch">
-              <div className="flex-1 min-h-[150px] sm:min-h-[180px]">
+            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
+              <div className="flex-1 min-h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RePieChart>
                     <Pie
@@ -146,10 +145,10 @@ const DashboardHome = () => {
                   </RePieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full lg:w-36 flex-shrink-0 mt-2 lg:mt-0">
+              <div className="w-full lg:w-40 flex-shrink-0 mt-4 lg:mt-0">
                 {datosTiposSolicitud.map((t) => (
-                  <div key={t.name} className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-700 mb-1">
-                    <span style={{ width: 10, height: 10, background: TYPE_COLORS[t.name] || "#334155", display: "inline-block", borderRadius: 2 }} />
+                  <div key={t.name} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
+                    <span style={{ width: 12, height: 12, background: TYPE_COLORS[t.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
                     <span className="font-medium">{t.name}</span>
                     <span className="text-gray-500 ml-1">({t.value})</span>
                   </div>
@@ -158,17 +157,16 @@ const DashboardHome = () => {
             </div>
           </ChartWrapped>
 
-          {/* Estado de solicitudes */}
           <ChartWrapped
             title="Estado de solicitudes"
             icon={<BarChart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />}
             tooltipFormatter={radialTooltipFormatter}
-            className="flex-1 h-56 sm:h-64 md:h-72 w-full"
+            className="flex-1 h-64 sm:h-72 md:h-80 w-full"
           >
-            <div className="flex flex-col lg:flex-row gap-2 h-full items-stretch">
-              <div className="flex-1 min-h-[150px] sm:min-h-[180px]">
+            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
+              <div className="flex-1 min-h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="95%" barSize={12} data={datosEstadosSolicitud}>
+                  <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="95%" barSize={14} data={datosEstadosSolicitud}>
                     <RadialBar minAngle={15} background clockWise dataKey="value" cornerRadius={6}>
                       {datosEstadosSolicitud.map((entry, i) => (
                         <Cell key={i} fill={STATE_COLORS[entry.name] || "#334155"} />
@@ -178,10 +176,10 @@ const DashboardHome = () => {
                   </RadialBarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full lg:w-36 flex-shrink-0 mt-2 lg:mt-0">
+              <div className="w-full lg:w-40 flex-shrink-0 mt-4 lg:mt-0">
                 {datosEstadosSolicitud.map((e) => (
-                  <div key={e.name} className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-700 mb-1">
-                    <span style={{ width: 10, height: 10, background: STATE_COLORS[e.name] || "#334155", display: "inline-block", borderRadius: 2 }} />
+                  <div key={e.name} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
+                    <span style={{ width: 12, height: 12, background: STATE_COLORS[e.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
                     <span className="font-medium">{e.name}</span>
                     <span className="text-gray-500 ml-1">({e.value})</span>
                   </div>
@@ -192,7 +190,7 @@ const DashboardHome = () => {
         </div>
 
         {/* Accesos rápidos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-4 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 w-full">
           {[
             { label: "Nueva Solicitud", icon: FilePlus, url: "/nueva-solicitud", bg: "blue", desc: "Registra una nueva solicitud de gasto." },
             { label: "Ver Liquidaciones", icon: PieChart, url: "/liquidaciones", bg: "emerald", desc: "Consulta el estado de tus liquidaciones." },
@@ -201,16 +199,17 @@ const DashboardHome = () => {
             <div
               key={btn.label}
               onClick={() => handleNavegar(btn.url)}
-              className={`group bg-white border border-gray-200 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center cursor-pointer transition hover:shadow-md hover:scale-105`}
+              className={`group bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
             >
-              <div className={`rounded-full p-2 sm:p-3 mb-2 bg-${btn.bg}-50 group-hover:bg-${btn.bg}-100 transition`}>
-                <btn.icon size={20} className={`text-${btn.bg}-600`} />
+              <div className={`rounded-full p-3 mb-3 bg-${btn.bg}-50 group-hover:bg-${btn.bg}-100 transition`}>
+                <btn.icon size={24} className={`text-${btn.bg}-600`} />
               </div>
-              <h4 className="font-semibold text-gray-800 text-sm sm:text-base">{btn.label}</h4>
-              <p className="text-xs sm:text-sm text-gray-500 text-center mt-1">{btn.desc}</p>
+              <h4 className="font-semibold text-gray-800 text-base text-center">{btn.label}</h4>
+              <p className="text-sm text-gray-500 text-center mt-1">{btn.desc}</p>
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );
