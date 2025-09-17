@@ -188,43 +188,58 @@ return (
         </div>
       </div>
 
-      {/* Tabla manual y scrollable */}
-      <div className="overflow-x-auto w-full flex-1 min-w-0 bg-white rounded-xl shadow-sm">
-        <table className="w-full border-collapse text-xs sm:text-sm md:text-base">
-          <thead className="bg-gray-100">
+      {/* Tabla scrollable horizontal y vertical */}
+      <div className="overflow-x-auto overflow-y-auto max-h-[70vh] w-full">
+        <table className="min-w-[800px] w-full table-auto border-collapse text-xs sm:text-sm">
+          {/* Cabecera */}
+          <thead className="bg-gray-100 text-gray-700 font-semibold">
             <tr>
-              {["N°","Tipo","S/.","$","Fecha","Concepto","Estado","Acción"].map((h) => (
-                <th key={h} className="px-2 py-2 text-left">{h}</th>
+              {["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"].map((header, i) => (
+                <th key={i} className="px-2 py-2 border border-gray-200 text-center">
+                  {header}
+                </th>
               ))}
             </tr>
           </thead>
-          <tbody>
-            {solicitudesFiltradas.length === 0 && (
-              <tr><td colSpan={8} className="text-center py-4">No hay solicitudes en este estado o rango de fechas.</td></tr>
-            )}
-            {solicitudesFiltradas.map((s) => (
-              <tr key={s.id} className="border-t hover:bg-gray-50">
-                <td className="px-2 py-1 text-center font-semibold whitespace-nowrap">{s.numero_solicitud}</td>
-                <td className="px-2 py-1 text-center whitespace-nowrap">
-                  <span className={`px-2 py-0.5 rounded-full ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
-                </td>
-                <td className="px-2 py-1 text-center whitespace-nowrap">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
-                <td className="px-2 py-1 text-center whitespace-nowrap">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
-                <td className="px-2 py-1 text-center whitespace-nowrap">{s.fecha}</td>
-                <td className="px-2 py-1 text-center truncate max-w-[150px]">{s.concepto_gasto ?? "-"}</td>
-                <td className="px-2 py-1 text-center whitespace-nowrap">
-                  <span className={`px-2 py-0.5 rounded-full ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
-                </td>
-                <td className="px-2 py-1 text-center whitespace-nowrap">
-                  <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-2">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" /> Presentar
-                  </Button>
+
+          {/* Cuerpo */}
+          <tbody className="bg-gray-50">
+            {solicitudesFiltradas.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center py-6 text-gray-500 italic border border-gray-200">
+                  No hay solicitudes en este estado o rango de fechas.
                 </td>
               </tr>
-            ))}
+            ) : (
+              solicitudesFiltradas.map((s, idx) => (
+                <tr key={s.id || idx} className="hover:bg-gray-100 transition">
+                  <td className="px-2 py-1 font-semibold text-center">{s.numero_solicitud}</td>
+                  <td className="px-2 py-1 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>
+                      {s.tipo_solicitud}
+                    </span>
+                  </td>
+                  <td className="px-2 py-1 text-center">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
+                  <td className="px-2 py-1 text-center">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
+                  <td className="px-2 py-1 text-center">{s.fecha}</td>
+                  <td className="px-2 py-1 text-center truncate max-w-[120px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
+                  <td className="px-2 py-1 text-center">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>
+                      {s.estado}
+                    </span>
+                  </td>
+                  <td className="px-2 py-1 text-center">
+                    <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center gap-1 px-2 py-1">
+                      <FileText className="w-4 h-4" /> Presentar
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
+
 
       {showPresentarModal && (
         <PresentarDocumentacionModal
