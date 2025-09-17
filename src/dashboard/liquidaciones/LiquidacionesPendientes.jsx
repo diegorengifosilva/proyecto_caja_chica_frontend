@@ -91,43 +91,43 @@ export default function LiquidacionesPendientes() {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
-      <div className="flex-1 flex flex-col w-full px-2 sm:px-4 py-4">
+      <div className="flex-1 flex flex-col w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 lg:py-6">
 
         {/* Header */}
         <div className="flex justify-center md:justify-start items-center mb-4 px-1">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 text-black">
-            <FolderKanban className="w-5 sm:w-6 h-5 sm:h-6" /> Liquidaciones Pendientes
+            <FolderKanban className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7" /> Liquidaciones Pendientes
           </h2>
         </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
-        {[
-          { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
-          { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
-          { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
-          { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
-        ].map((kpi) => (
-          <div key={kpi.label} className="flex-1 min-w-0">
-            <KpiCard
-              label={kpi.label}
-              value={loading ? 0 : kpi.value}
-              icon={kpi.icon}
-              gradient={kpi.gradient}
-              tooltip={kpi.tooltip}
-              decimals={Number.isInteger(kpi.value) ? 0 : 2}
-              className="text-xs sm:text-sm md:text-base w-full p-3 sm:p-4"
-            />
-          </div>
-        ))}
-      </div>
+        {/* KPIs */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
+          {[
+            { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
+            { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
+            { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
+            { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
+          ].map((kpi) => (
+            <div key={kpi.label} className="flex-1 min-w-0">
+              <KpiCard
+                label={kpi.label}
+                value={loading ? 0 : kpi.value}
+                icon={kpi.icon}
+                gradient={kpi.gradient}
+                tooltip={kpi.tooltip}
+                decimals={Number.isInteger(kpi.value) ? 0 : 2}
+                className="text-xs sm:text-sm md:text-base w-full p-2 sm:p-3 md:p-4"
+              />
+            </div>
+          ))}
+        </div>
 
         {/* Gráficos */}
         <div className="flex flex-col gap-4 sm:gap-6 mb-6 w-full lg:flex-row">
           <ChartWrapped
             title="Montos por Tipo de Solicitud (S/.)"
-            icon={<ChartBarDecreasing className="w-4 h-4" />}
-            className="w-full h-64 sm:h-72 lg:h-80 flex-1"
+            icon={<ChartBarDecreasing className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
+            className="w-full h-56 sm:h-64 md:h-72 lg:h-80 flex-1"
             tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -136,7 +136,7 @@ export default function LiquidacionesPendientes() {
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" width={80} />
                 <Tooltip formatter={(val) => `S/ ${val.toLocaleString()}`} />
-                <Bar dataKey="value" barSize={35}>
+                <Bar dataKey="value" barSize={30}>
                   {dataMontoPorTipo.map((entry, i) => <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />)}
                 </Bar>
               </BarChart>
@@ -145,8 +145,8 @@ export default function LiquidacionesPendientes() {
 
           <ChartWrapped
             title="Distribución por Tipo"
-            icon={<ChartColumnIncreasing className="w-4 h-4" />}
-            className="w-full h-64 sm:h-72 lg:h-80 flex-1"
+            icon={<ChartColumnIncreasing className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
+            className="w-full h-56 sm:h-64 md:h-72 lg:h-80 flex-1"
             tooltipFormatter={tooltipFormatter}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -155,7 +155,7 @@ export default function LiquidacionesPendientes() {
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
                 <Tooltip formatter={tooltipFormatter} />
-                <Bar dataKey="value" barSize={35}>
+                <Bar dataKey="value" barSize={30}>
                   {dataTipo.map((entry, i) => <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />)}
                 </Bar>
               </BarChart>
@@ -164,39 +164,36 @@ export default function LiquidacionesPendientes() {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
+        <div className="bg-white p-2 sm:p-3 md:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
-            {/* Solicitante */}
             <div className="flex flex-col w-full">
-              <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
               </label>
-              <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
+              <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 text-xs sm:text-sm md:text-base w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
                 <option value="">Todos</option>
                 {solicitantes.map((sol) => <option key={sol} value={sol}>{sol}</option>)}
               </select>
             </div>
 
-            {/* Tipo */}
             <div className="flex flex-col w-full">
-              <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
               </label>
-              <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full focus:ring-2 focus:ring-green-400 focus:outline-none">
+              <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 text-xs sm:text-sm md:text-base w-full focus:ring-2 focus:ring-green-400 focus:outline-none">
                 <option value="">Todos</option>
                 {Object.keys(TYPE_COLORS).map((tipo_solicitud) => <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>)}
               </select>
             </div>
 
-            {/* Fechas */}
             <div className="flex flex-col w-full">
-              <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+              <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
               </label>
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
-                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
-                <span className="text-gray-400 text-xs hidden sm:inline">→</span>
-                <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+                <span className="text-gray-400 text-[10px] sm:text-xs hidden sm:inline">→</span>
+                <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
               </div>
             </div>
           </div>
@@ -210,20 +207,20 @@ export default function LiquidacionesPendientes() {
             emptyMessage="No hay solicitudes en este estado o rango de fechas."
             renderRow={(s) => (
               <>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm font-semibold">{s.numero_solicitud}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base font-semibold">{s.numero_solicitud}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs md:text-sm ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
                 </td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.fecha}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm truncate max-w-[140px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">{s.fecha}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base truncate max-w-[140px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs md:text-sm ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
                 </td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm md:text-base">
                   <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center justify-center gap-1 px-2 py-1 sm:px-3 sm:py-2">
-                    <FileText className="w-4 h-4" /> Presentar
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> Presentar
                   </Button>
                 </td>
               </>
