@@ -100,27 +100,27 @@ export default function LiquidacionesPendientes() {
           </h2>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 w-full mb-6">
-          {[ 
-            { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
-            { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
-            { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
-            { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
-          ].map((kpi) => (
-            <div key={kpi.label} className="w-full">
-              <KpiCard
-                label={kpi.label}
-                value={loading ? 0 : kpi.value}
-                icon={kpi.icon}
-                gradient={kpi.gradient}
-                tooltip={kpi.tooltip}
-                decimals={Number.isInteger(kpi.value) ? 0 : 2}
-                className="w-full text-sm sm:text-base p-3 sm:p-4"
-              />
-            </div>
-          ))}
-        </div>
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
+        {[
+          { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
+          { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
+          { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
+          { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
+        ].map((kpi) => (
+          <div key={kpi.label} className="flex-1 min-w-0">
+            <KpiCard
+              label={kpi.label}
+              value={loading ? 0 : kpi.value}
+              icon={kpi.icon}
+              gradient={kpi.gradient}
+              tooltip={kpi.tooltip}
+              decimals={Number.isInteger(kpi.value) ? 0 : 2}
+              className="text-xs sm:text-sm md:text-base w-full p-3 sm:p-4"
+            />
+          </div>
+        ))}
+      </div>
 
         {/* Gráficos */}
         <div className="flex flex-col gap-4 sm:gap-6 mb-6 w-full lg:flex-row">
