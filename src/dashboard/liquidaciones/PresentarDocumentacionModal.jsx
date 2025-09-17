@@ -40,40 +40,65 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
 
   const handlePresentarLiquidacion = async () => {
     if (documentos.length === 0) return alert("⚠️ Agrega al menos un comprobante.");
+
     try {
       setLoading(true);
+
+      const token = localStorage.getItem("access_token"); // JWT guardado
+      if (!token) return alert("⚠️ No se encontró token. Debes iniciar sesión.");
+
       const formData = new FormData();
       formData.append("id_solicitud", solicitud.id);
 
+      // Datos sin archivo
       const documentosSinArchivo = documentos.map(doc => ({
         tipo_documento: doc.tipo_documento,
         numero_documento: doc.numero_documento,
         fecha: doc.fecha,
         ruc: doc.ruc,
         razon_social: doc.razon_social,
-        total: doc.total,
+        total: parseFloat(doc.total),
       }));
       formData.append("documentos", JSON.stringify(documentosSinArchivo));
 
-      documentos.forEach(doc => {
-        formData.append("archivos", doc.archivo);
+      // Archivos
+      documentos.forEach((doc) => {
+        if (doc.archivo) formData.append("archivos", doc.archivo);
       });
 
-      await api.post("/api/boleta/documentos/guardar/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      // 🔹 DEBUG: ver qué se envía
+      console.log("📤 Enviando FormData:");
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0], pair[1].name, pair[1].size, pair[1].type);
+        } else {
+          console.log(pair[0], pair[1]);
+        }
+      }
+
+      // POST con JWT en Authorization
+      const res = await api.post("/api/boleta/documentos/guardar/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`, // ⚡ JWT
+        },
       });
 
-      alert("✅ Liquidación presentada correctamente");
+      console.log("✅ Liquidación presentada:", res.data);
+
+      // Actualizar estado local (opcional)
       onClose();
+      alert("✅ Liquidación presentada correctamente");
+
     } catch (error) {
-      console.error("❌ Error presentando liquidación:", error);
-      alert("❌ Ocurrió un error al presentar la liquidación");
+      console.error("❌ Error guardando documento:", error.response?.data || error);
+      alert("❌ Ocurrió un error al presentar la liquidación. Revisa consola.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
+ return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="w-full max-w-5xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
@@ -137,66 +162,35 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
                   </Button>
                 </div>
 
-                {/* Tabla OCR con animación */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full border border-gray-200">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-3 py-2 text-center">Nombre del Archivo</th>
-                        <th className="px-3 py-2 text-center">N° Doc</th>
-                        <th className="px-3 py-2 text-center">Tipo</th>
-                        <th className="px-3 py-2 text-center">Fecha</th>
-                        <th className="px-3 py-2 text-center">RUC</th>
-                        <th className="px-3 py-2 text-center">Razón Social</th>
-                        <th className="px-3 py-2 text-center">Total</th>
-                        <th className="px-3 py-2 text-center"> </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <AnimatePresence>
-                        {documentos.length === 0 ? (
-                          <tr>
-                            <td colSpan={8} className="text-center py-4 text-gray-500">
-                              No se han agregado comprobantes todavía.
-                            </td>
-                          </tr>
-                        ) : (
-                          documentos.map((doc, index) => (
-                            <motion.tr
-                              key={index}
-                              initial={{ opacity: 0, y: -10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 10 }}
-                              className="border-b border-gray-200"
-                            >
-                              <td
-                                className="px-3 py-3 text-center cursor-pointer text-blue-600 hover:underline"
-                                onClick={() => handleAbrirArchivo(doc.archivo)}
-                              >
-                                {doc.nombre_archivo}
-                              </td>
-                              <td className="px-3 py-3 text-center">{doc.numero_documento}</td>
-                              <td className="px-3 py-3 text-center">{doc.tipo_documento}</td>
-                              <td className="px-3 py-3 text-center">{doc.fecha}</td>
-                              <td className="px-3 py-3 text-center">{doc.ruc}</td>
-                              <td className="px-3 py-3 text-center">{doc.razon_social}</td>
-                              <td className="px-3 py-3 text-center">{doc.total}</td>
-                              <td className="px-3 py-3 text-center">
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleEliminarDocumento(doc)}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </td>
-                            </motion.tr>
-                          ))
-                        )}
-                      </AnimatePresence>
-                    </tbody>
-                  </table>
-                </div>
+                {/* Tabla OCR usando Table.jsx */}
+                <Table
+                  headers={[
+                    "Nombre del Archivo",
+                    "N° Doc",
+                    "Tipo",
+                    "Fecha",
+                    "RUC",
+                    "Razón Social",
+                    "Total",
+                  ]}
+                  data={documentos}
+                  emptyMessage="No se han agregado comprobantes todavía."
+                  renderRow={(doc) => [
+                    <span
+                      className="cursor-pointer text-blue-600 hover:underline"
+                      onClick={() => handleAbrirArchivo(doc.archivo)}
+                    >
+                      {doc.nombre_archivo}
+                    </span>,
+                    doc.numero_documento,
+                    doc.tipo_documento,
+                    doc.fecha,
+                    doc.ruc,
+                    doc.razon_social,
+                    doc.total,
+                  ]}
+                  onDeleteRow={(doc) => handleEliminarDocumento(doc)}
+                />
 
                 {/* Total Documentado */}
                 <div className="mt-4 text-right font-semibold text-gray-800 text-sm sm:text-base">

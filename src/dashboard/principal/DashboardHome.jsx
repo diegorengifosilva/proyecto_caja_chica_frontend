@@ -3,23 +3,23 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
-import {
-  DollarSign,
-  PieChart,
-  ClipboardList,
-  FileText,
-  CheckCircle2,
-  FilePlus,
-  BarChart,
+import { 
+  DollarSign, 
+  PieChart, 
+  ClipboardList, 
+  FileText, 
+  CheckCircle2, 
+  FilePlus, 
+  BarChart 
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  PieChart as RePieChart,
-  Pie,
-  Cell,
-  RadialBarChart,
-  RadialBar,
-  Tooltip as RechartsTooltip,
+import { 
+  ResponsiveContainer, 
+  PieChart as RePieChart, 
+  Pie, 
+  Cell, 
+  RadialBarChart, 
+  RadialBar, 
+  Tooltip as RechartsTooltip 
 } from "recharts";
 import KpiCard from "@/components/ui/KpiCard";
 import { STATE_COLORS, TYPE_COLORS } from "@/components/ui/colors";
@@ -241,7 +241,6 @@ const DashboardHome = () => {
       </div>
     </div>
   );
-
 };
 
 export default DashboardHome;
