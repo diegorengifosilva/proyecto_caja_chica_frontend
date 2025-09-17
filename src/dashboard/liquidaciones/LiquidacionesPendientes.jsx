@@ -91,37 +91,36 @@ export default function LiquidacionesPendientes() {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
-      <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
+      <div className="flex-1 flex flex-col w-full px-2 sm:px-4 py-4">
 
         {/* Header */}
-        <div className="flex justify-center md:justify-start items-center mb-4">
+        <div className="flex justify-center md:justify-start items-center mb-4 px-1">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 text-black">
             <FolderKanban className="w-5 sm:w-6 h-5 sm:h-6" /> Liquidaciones Pendientes
           </h2>
         </div>
 
         {/* KPIs */}
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full">
-  {[
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 w-full mb-6">
+          {[
             { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
             { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
             { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
             { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
           ].map((kpi) => (
-    <div key={kpi.label} className="flex-1 w-full min-w-0">
-      <KpiCard
-        label={kpi.label}
-        value={loading ? 0 : kpi.value}
-        icon={kpi.icon}
-        gradient={kpi.gradient}
-        tooltip={kpi.tooltip}
-        decimals={Number.isInteger(kpi.value) ? 0 : 2}
-        className="w-full text-sm sm:text-base p-3 sm:p-4"
-      />
-    </div>
-  ))}
-</div>
-
+            <div key={kpi.label} className="w-full">
+              <KpiCard
+                label={kpi.label}
+                value={loading ? 0 : kpi.value}
+                icon={kpi.icon}
+                gradient={kpi.gradient}
+                tooltip={kpi.tooltip}
+                decimals={Number.isInteger(kpi.value) ? 0 : 2}
+                className="w-full text-base sm:text-sm p-3"
+              />
+            </div>
+          ))}
+        </div>
 
         {/* Gráficos */}
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
@@ -167,7 +166,6 @@ export default function LiquidacionesPendientes() {
         {/* Filtros */}
         <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
-            {/* Solicitante */}
             <div className="flex flex-col w-full">
               <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
@@ -177,8 +175,6 @@ export default function LiquidacionesPendientes() {
                 {solicitantes.map((sol) => <option key={sol} value={sol}>{sol}</option>)}
               </select>
             </div>
-
-            {/* Tipo */}
             <div className="flex flex-col w-full">
               <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
@@ -188,13 +184,11 @@ export default function LiquidacionesPendientes() {
                 {Object.keys(TYPE_COLORS).map((tipo_solicitud) => <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>)}
               </select>
             </div>
-
-            {/* Fechas */}
             <div className="flex flex-col w-full">
               <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
               </label>
-              <div className="flex flex-col sm:flex-row items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
                 <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto" />
                 <span className="text-gray-400 text-xs hidden sm:inline">→</span>
                 <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto" />
@@ -204,7 +198,7 @@ export default function LiquidacionesPendientes() {
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto max-h-[70vh]">
+        <div className="overflow-x-auto max-h-[70vh] w-full">
           <Table
             headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
             data={solicitudesFiltradas}
