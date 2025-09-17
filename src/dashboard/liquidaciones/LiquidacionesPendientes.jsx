@@ -108,8 +108,8 @@ return (
         </h2>
       </div>
 
-      {/* KPIs manuales */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 w-full">
+      {/* KPIs adaptables */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 w-full">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
@@ -119,47 +119,38 @@ return (
           >
             {kpi.icon && <kpi.icon className="w-6 h-6 mb-2 opacity-90" />}
             <p className="text-xs sm:text-sm opacity-90">{kpi.label}</p>
-            <p className="text-xl sm:text-2xl font-bold">{loading ? 0 : Number(kpi.value).toLocaleString(undefined, { minimumFractionDigits: kpi.decimals || 0, maximumFractionDigits: kpi.decimals || 0 })}</p>
+            <p className="text-xl sm:text-2xl font-bold">
+              {loading
+                ? 0
+                : Number(kpi.value).toLocaleString(undefined, {
+                    minimumFractionDigits: kpi.decimals || 0,
+                    maximumFractionDigits: kpi.decimals || 0,
+                  })}
+            </p>
           </div>
         ))}
       </div>
 
-      {/* Gráficos manuales */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-6 w-full">
-        {/* Montos por Tipo */}
-        <div className="flex-1 min-w-0 bg-white rounded-xl shadow-md p-4 flex flex-col">
-          <div className="flex items-center mb-2">
-            <ChartBarDecreasing className="w-5 h-5 mr-2" />
-            <h3 className="font-semibold text-gray-700 text-sm sm:text-base">Montos por Tipo de Solicitud (S/.)</h3>
-          </div>
-          <div className="flex-1 w-full min-h-[220px]">
-            {/* Aquí va tu chart de Recharts */}
-          </div>
-        </div>
-
-        {/* Distribución por Tipo */}
-        <div className="flex-1 min-w-0 bg-white rounded-xl shadow-md p-4 flex flex-col">
-          <div className="flex items-center mb-2">
-            <ChartColumnIncreasing className="w-5 h-5 mr-2" />
-            <h3 className="font-semibold text-gray-700 text-sm sm:text-base">Distribución por Tipo</h3>
-          </div>
-          <div className="flex-1 w-full min-h-[220px]">
-            {/* Aquí va tu chart de Recharts */}
-          </div>
-        </div>
-      </div>
-
-      {/* Filtros manuales */}
+      {/* Filtros */}
       <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+          
           {/* Solicitante */}
           <div className="flex flex-col w-full">
             <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
             </label>
-            <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none text-xs sm:text-sm md:text-base">
+            <select
+              value={filtroSolicitante}
+              onChange={(e) => setFiltroSolicitante(e.target.value)}
+              className="border rounded-lg px-2 py-1 sm:py-2 w-full focus:ring-2 focus:ring-blue-400 focus:outline-none text-xs sm:text-sm md:text-base"
+            >
               <option value="">Todos</option>
-              {solicitantes.map((sol) => <option key={sol} value={sol}>{sol}</option>)}
+              {solicitantes.map((sol) => (
+                <option key={sol} value={sol}>
+                  {sol}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -168,9 +159,17 @@ return (
             <label className="text-xs sm:text-sm md:text-base font-semibold text-gray-600 mb-1 flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
             </label>
-            <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-1 sm:py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none text-xs sm:text-sm md:text-base">
+            <select
+              value={filtroTipo}
+              onChange={(e) => setFiltroTipo(e.target.value)}
+              className="border rounded-lg px-2 py-1 sm:py-2 w-full focus:ring-2 focus:ring-green-400 focus:outline-none text-xs sm:text-sm md:text-base"
+            >
               <option value="">Todos</option>
-              {Object.keys(TYPE_COLORS).map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+              {Object.keys(TYPE_COLORS).map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -180,18 +179,27 @@ return (
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
             </label>
             <div className="flex flex-col sm:flex-row gap-2 w-full">
-              <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+              <input
+                type="date"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+                className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none"
+              />
               <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">→</span>
-              <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+              <input
+                type="date"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+                className="border rounded-lg px-2 py-1 text-xs sm:text-sm md:text-base w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabla scrollable horizontal y vertical */}
+      {/* Tabla scrollable */}
       <div className="overflow-x-auto overflow-y-auto max-h-[70vh] w-full">
         <table className="min-w-[800px] w-full table-auto border-collapse text-xs sm:text-sm">
-          {/* Cabecera */}
           <thead className="bg-gray-100 text-gray-700 font-semibold">
             <tr>
               {["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"].map((header, i) => (
@@ -201,8 +209,6 @@ return (
               ))}
             </tr>
           </thead>
-
-          {/* Cuerpo */}
           <tbody className="bg-gray-50">
             {solicitudesFiltradas.length === 0 ? (
               <tr>
@@ -215,7 +221,11 @@ return (
                 <tr key={s.id || idx} className="hover:bg-gray-100 transition">
                   <td className="px-2 py-1 font-semibold text-center">{s.numero_solicitud}</td>
                   <td className="px-2 py-1 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${
+                        TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"
+                      }`}
+                    >
                       {s.tipo_solicitud}
                     </span>
                   </td>
@@ -224,12 +234,21 @@ return (
                   <td className="px-2 py-1 text-center">{s.fecha}</td>
                   <td className="px-2 py-1 text-center truncate max-w-[120px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
                   <td className="px-2 py-1 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${
+                        STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"
+                      }`}
+                    >
                       {s.estado}
                     </span>
                   </td>
                   <td className="px-2 py-1 text-center">
-                    <Button variant="outline" size="sm" onClick={() => handleAccion(s.id, "Presentar Documentación", s)} className="flex items-center gap-1 px-2 py-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAccion(s.id, "Presentar Documentación", s)}
+                      className="flex items-center gap-1 px-2 py-1"
+                    >
                       <FileText className="w-4 h-4" /> Presentar
                     </Button>
                   </td>
@@ -240,7 +259,6 @@ return (
         </table>
       </div>
 
-
       {showPresentarModal && (
         <PresentarDocumentacionModal
           open={showPresentarModal}
@@ -248,7 +266,6 @@ return (
           solicitud={selectedSolicitud}
         />
       )}
-
     </div>
   </div>
 );
