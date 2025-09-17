@@ -12,7 +12,7 @@ import Table from "@/components/ui/table";
 import SubirArchivoModal from "./SubirArchivoModal";
 
 const TIPO_CAMBIO = 3.52; // 1 USD = 3.52 S/
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 🔹 10 MB
+const MAX_FILE_SIZE = 100 * 10024 * 10024; // 🔹 10 MB
 
 const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
   const [documentos, setDocumentos] = useState([]);
