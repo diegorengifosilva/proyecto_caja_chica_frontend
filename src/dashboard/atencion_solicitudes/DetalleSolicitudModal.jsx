@@ -52,16 +52,22 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
 
       await api.post(
         `/boleta/solicitudes/${solicitudId}/decision/`,
-        { decision, comentario }, // 👈 Aquí mandamos solo "Atendido" o "Rechazado"
+        { decision, comentario },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Emitimos eventos globales
-      if (decision === "Atendido") {
-        EventBus.emit("solicitudAtendida", { id: solicitudId });
-      } else if (decision === "Rechazado") {
-        EventBus.emit("solicitudRechazada", { id: solicitudId });
-      }
+      // Recargar detalle para obtener el estado exacto actualizado
+      const { data: solicitudActualizada } = await api.get(
+        `/boleta/solicitudes/${solicitudId}/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSolicitud(solicitudActualizada);
+
+      // Emitir eventos globales
+      EventBus.emit(
+        decision === "Atendido" ? "solicitudAtendida" : "solicitudRechazada",
+        { id: solicitudId }
+      );
 
       const msg =
         decision === "Atendido"
@@ -69,11 +75,11 @@ export default function DetalleSolicitudModal({ solicitudId, onClose, onDecided 
           : "Solicitud rechazada correctamente.";
 
       if (onDecided) onDecided(msg);
+
+      // Redirigir si se atendió
+      if (decision === "Atendido") navigate("/dashboard/liquidaciones");
       onClose();
 
-      if (decision === "Atendido") {
-        navigate("/dashboard/liquidaciones");
-      }
     } catch (e) {
       console.error(e);
       toast.error("Error al registrar la acción.");

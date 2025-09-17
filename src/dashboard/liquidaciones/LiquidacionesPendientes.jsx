@@ -100,8 +100,8 @@ export default function LiquidacionesPendientes() {
           </h2>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 w-full mb-6">
+        {/* KPIs: apilados en móvil, 2 cols en sm, 4 cols en md */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 w-full mb-6">
           {[
             { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
             { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
@@ -116,18 +116,18 @@ export default function LiquidacionesPendientes() {
                 gradient={kpi.gradient}
                 tooltip={kpi.tooltip}
                 decimals={Number.isInteger(kpi.value) ? 0 : 2}
-                className="w-full text-base sm:text-sm p-3"
+                className="w-full text-sm sm:text-base p-3 sm:p-4"
               />
             </div>
           ))}
         </div>
 
-        {/* Gráficos */}
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
+        {/* Gráficos: vertical en móvil, horizontal en lg */}
+        <div className="flex flex-col gap-4 sm:gap-6 mb-6 w-full lg:flex-row">
           <ChartWrapped
             title="Montos por Tipo de Solicitud (S/.)"
             icon={<ChartBarDecreasing className="w-4 h-4" />}
-            className="flex-1 h-56 sm:h-64 md:h-72 lg:h-80 w-full"
+            className="w-full h-64 sm:h-72 lg:h-80 flex-1"
             tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -146,7 +146,7 @@ export default function LiquidacionesPendientes() {
           <ChartWrapped
             title="Distribución por Tipo"
             icon={<ChartColumnIncreasing className="w-4 h-4" />}
-            className="flex-1 h-56 sm:h-64 md:h-72 lg:h-80 w-full"
+            className="w-full h-64 sm:h-72 lg:h-80 flex-1"
             tooltipFormatter={tooltipFormatter}
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -163,41 +163,46 @@ export default function LiquidacionesPendientes() {
           </ChartWrapped>
         </div>
 
-        {/* Filtros */}
+        {/* Filtros: vertical en móvil, horizontal en sm+ */}
         <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
+            {/* Solicitante */}
             <div className="flex flex-col w-full">
               <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
               </label>
-              <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none w-full">
+              <select value={filtroSolicitante} onChange={(e) => setFiltroSolicitante(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full focus:ring-2 focus:ring-blue-400 focus:outline-none">
                 <option value="">Todos</option>
                 {solicitantes.map((sol) => <option key={sol} value={sol}>{sol}</option>)}
               </select>
             </div>
+
+            {/* Tipo */}
             <div className="flex flex-col w-full">
               <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
               </label>
-              <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none w-full">
+              <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full focus:ring-2 focus:ring-green-400 focus:outline-none">
                 <option value="">Todos</option>
                 {Object.keys(TYPE_COLORS).map((tipo_solicitud) => <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>)}
               </select>
             </div>
+
+            {/* Fechas */}
             <div className="flex flex-col w-full">
               <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
                 <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
               </label>
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full">
-                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto" />
+                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
                 <span className="text-gray-400 text-xs hidden sm:inline">→</span>
-                <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto" />
+                <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="border rounded-lg px-2 py-2 text-sm w-full sm:w-auto focus:ring-2 focus:ring-purple-400 focus:outline-none" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tabla */}
+        {/* Tabla scrollable */}
         <div className="overflow-x-auto max-h-[70vh] w-full">
           <Table
             headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
@@ -205,14 +210,14 @@ export default function LiquidacionesPendientes() {
             emptyMessage="No hay solicitudes en este estado o rango de fechas."
             renderRow={(s) => (
               <>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 font-semibold text-center text-xs sm:text-sm">{s.numero_solicitud}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm font-semibold">{s.numero_solicitud}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
                 </td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.fecha}</td>
-                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm truncate max-w-[140px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
                 <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
                 </td>
