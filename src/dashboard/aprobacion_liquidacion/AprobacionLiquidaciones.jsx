@@ -38,7 +38,7 @@ export default function AprobacionLiquidaciones() {
   const fetchLiquidaciones = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/liquidaciones-pendientes/");
+      const res = await axios.get("boleta/liquidaciones_pendientes");
       
       // Aseguramos que siempre sea un array
       const dataArray = Array.isArray(res.data)
@@ -59,41 +59,32 @@ export default function AprobacionLiquidaciones() {
   useEffect(() => { fetchLiquidaciones(); }, []);
 
   // ===== FILTROS MEJORADOS =====
-  const filteredLiquidaciones = useMemo(() => {
-    if (!Array.isArray(liquidaciones)) return []; // protección si no es array
+const filteredLiquidaciones = useMemo(() => {
+  if (!Array.isArray(liquidaciones)) return [];
 
-    return liquidaciones.filter(liq => {
-      const solicitante = liq.solicitante?.toString().toLowerCase() || "";
-      const docs = Array.isArray(liq.documentos) ? liq.documentos : [];
+  return liquidaciones.filter(liq => {
+    const solicitante = liq.solicitante?.toString().toLowerCase() || "";
+    const destinatario = liq.destinatario?.id || liq.destinatario?.username || "";
+    const docs = Array.isArray(liq.documentos) ? liq.documentos : [];
 
-      const matchSearch =
-        solicitante.includes(search.toLowerCase()) ||
-        liq.id?.toString().includes(search);
+    const matchSearch =
+      solicitante.includes(search.toLowerCase()) ||
+      liq.id?.toString().includes(search);
 
-      const matchTipo =
-        filterTipo === "Todas" || liq.tipo === filterTipo;
+    const matchTipo = filterTipo === "Todas" || liq.tipo === filterTipo;
+    const matchFechaDesde = !fechaDesde || new Date(liq.fecha) >= new Date(fechaDesde);
+    const matchFechaHasta = !fechaHasta || new Date(liq.fecha) <= new Date(fechaHasta);
+    const matchMontoMin = !montoMin || liq.monto >= parseFloat(montoMin);
+    const matchMontoMax = !montoMax || liq.monto <= parseFloat(montoMax);
+    const matchDoc = !docSearch || docs.some(d => d.toString().toLowerCase().includes(docSearch.toLowerCase()));
 
-      const matchFechaDesde =
-        !fechaDesde || new Date(liq.fecha) >= new Date(fechaDesde);
+    // ===== FILTRO POR ESTADO Y DESTINATARIO =====
+    const matchEstado = liq.estado === "Liquidación enviada para Aprobación";
+    const matchDestinatario = destinatario === user.id || destinatario === user.username;
 
-      const matchFechaHasta =
-        !fechaHasta || new Date(liq.fecha) <= new Date(fechaHasta);
-
-      const matchMontoMin =
-        !montoMin || liq.monto >= parseFloat(montoMin);
-
-      const matchMontoMax =
-        !montoMax || liq.monto <= parseFloat(montoMax);
-
-      const matchDoc =
-        !docSearch ||
-        docs.some(d =>
-          d.toString().toLowerCase().includes(docSearch.toLowerCase())
-        );
-
-      return matchSearch && matchTipo && matchFechaDesde && matchFechaHasta && matchMontoMin && matchMontoMax && matchDoc;
-    });
-  }, [liquidaciones, search, filterTipo, fechaDesde, fechaHasta, montoMin, montoMax, docSearch]);
+    return matchSearch && matchTipo && matchFechaDesde && matchFechaHasta && matchMontoMin && matchMontoMax && matchDoc && matchEstado && matchDestinatario;
+  });
+}, [liquidaciones, search, filterTipo, fechaDesde, fechaHasta, montoMin, montoMax, docSearch, user]);
 
   // ===== KPIs =====
   const kpiData = useMemo(() => {
