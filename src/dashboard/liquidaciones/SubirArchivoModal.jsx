@@ -14,12 +14,13 @@ export default function SubirArchivoModal({
 }) {
   const [tipoDocumento, setTipoDocumento] = useState("Boleta");
   const [archivo, setArchivo] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [errorOCR, setErrorOCR] = useState(null);
   const [totalManual, setTotalManual] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
 
   // Detectar si es móvil o tablet
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
     setIsMobile(checkMobile);
@@ -34,9 +35,14 @@ export default function SubirArchivoModal({
         return;
       }
 
-      // Validar tipo de archivo
+      // Normalizar tipo de archivo (iOS usa HEIC/HEIF)
+      let mimeType = file.type;
+      if (mimeType === "image/heic" || mimeType === "image/heif") {
+        mimeType = "image/jpeg";
+      }
+
       const validTypes = ["image/jpeg", "image/png", "application/pdf"];
-      if (!validTypes.includes(file.type)) {
+      if (!validTypes.includes(mimeType)) {
         alert("⚠️ Solo se permiten imágenes JPG/PNG o archivos PDF.");
         return;
       }
@@ -44,6 +50,11 @@ export default function SubirArchivoModal({
       setArchivo(file);
       setErrorOCR(null);
       setTotalManual("");
+
+      // Generar preview en móviles
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result);
+      reader.readAsDataURL(file);
     }
   };
 
@@ -54,14 +65,16 @@ export default function SubirArchivoModal({
     }
 
     const formData = new FormData();
-    formData.append("archivo", archivo);
+    formData.append("archivo", archivo, archivo.name);
     formData.append("tipo_documento", tipoDocumento);
     formData.append("id_solicitud", idSolicitud);
 
     try {
       setCargando(true);
 
-      const datosDetectados = await procesarDocumentoOCR(formData);
+      const datosDetectados = await procesarDocumentoOCR(formData, {
+        headers: { "Content-Type": "multipart/form-data" }, // 👈 clave para móviles
+      });
       console.log("📦 OCR recibido:", datosDetectados);
 
       const doc = {
@@ -155,9 +168,18 @@ export default function SubirArchivoModal({
 
           {/* Archivo seleccionado */}
           {archivo && (
-            <p className="text-xs text-gray-600 mt-2 flex items-center gap-1 truncate">
-              <Paperclip className="w-4 h-4" /> {archivo.name}
-            </p>
+            <div className="mt-2 space-y-2">
+              <p className="text-xs text-gray-600 flex items-center gap-1 truncate">
+                <Paperclip className="w-4 h-4" /> {archivo.name}
+              </p>
+              {preview && (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="max-h-40 rounded-md border mx-auto"
+                />
+              )}
+            </div>
           )}
 
           {/* Campo total manual */}
