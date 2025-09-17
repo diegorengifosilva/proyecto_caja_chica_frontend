@@ -72,7 +72,7 @@ const MisSolicitudes = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-[95%] max-h-[90vh] overflow-y-auto overflow-x-auto bg-white rounded-xl p-4 sm:p-6">
+      <DialogContent className="max-w-6xl w-full max-h-[90vh] bg-white rounded-xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-800">
             <FileText className="w-6 h-6" />
@@ -115,7 +115,7 @@ const MisSolicitudes = ({ open, onClose }) => {
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh]">
           <Table
             headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
             data={solicitudesFiltradas}
