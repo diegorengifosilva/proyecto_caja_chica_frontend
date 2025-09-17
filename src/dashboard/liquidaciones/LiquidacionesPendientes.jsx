@@ -158,195 +158,190 @@ export default function LiquidacionesPendientes() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 w-full">
+    <div className="min-h-screen w-full flex flex-col bg-gray-50 font-sans">
+      <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
 
-      {/* Header */}
-      <div className="flex justify-center md:justify-start items-center mb-4">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 text-black">
-          <FolderKanban className="w-5 sm:w-6 h-5 sm:h-6" /> Liquidaciones Pendientes
-        </h2>
-      </div>
+        {/* Header */}
+        <div className="flex justify-center md:justify-start items-center mb-4">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2 text-black">
+            <FolderKanban className="w-5 sm:w-6 h-5 sm:h-6" /> Liquidaciones Pendientes
+          </h2>
+        </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
-        {[
-          { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
-          { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
-          { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
-          { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
-        ].map((kpi) => (
-          <div key={kpi.label} className="flex-1 min-w-0">
-            <KpiCard
-              label={kpi.label}
-              value={loading ? 0 : kpi.value}
-              icon={kpi.icon}
-              gradient={kpi.gradient}
-              tooltip={kpi.tooltip}
-              decimals={Number.isInteger(kpi.value) ? 0 : 2}
-              className="text-xs sm:text-sm md:text-base w-full p-2 sm:p-3"
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-        <ChartWrapped
-          title="Montos por Tipo de Solicitud (S/.)"
-          icon={<ChartBarDecreasing className="w-4 h-4" />}
-          className="h-64 sm:h-72 lg:h-80"
-          tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dataMontoPorTipo} layout="vertical" margin={{ left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={100} />
-              <Tooltip formatter={(val) => `S/ ${val.toLocaleString()}`} />
-              <Bar dataKey="value" barSize={25}>
-                {dataMontoPorTipo.map((entry, i) => (
-                  <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartWrapped>
-
-        <ChartWrapped
-          title="Distribución por Tipo"
-          icon={<ChartColumnIncreasing className="w-4 h-4" />}
-          className="h-64 sm:h-72 lg:h-80"
-          tooltipFormatter={tooltipFormatter}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dataTipo}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
-              <Tooltip formatter={tooltipFormatter} />
-              <Bar dataKey="value" barSize={25}>
-                {dataTipo.map((entry, i) => (
-                  <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartWrapped>
-      </div>
-
-      {/* Filtros */}
-      <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
-          {/* Solicitante */}
-          <div className="flex flex-col w-full">
-            <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
-            </label>
-            <select
-              value={filtroSolicitante}
-              onChange={(e) => setFiltroSolicitante(e.target.value)}
-              className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
-            >
-              <option value="">Todos</option>
-              {solicitantes.map((sol) => (
-                <option key={sol} value={sol}>{sol}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tipo */}
-          <div className="flex flex-col w-full">
-            <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
-            </label>
-            <select
-              value={filtroTipo}
-              onChange={(e) => setFiltroTipo(e.target.value)}
-              className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none w-full"
-            >
-              <option value="">Todos</option>
-              {Object.keys(TYPE_COLORS).map((tipo_solicitud) => (
-                <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Fechas */}
-          <div className="flex flex-col w-full">
-            <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
-              <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
-            </label>
-            <div className="flex flex-col sm:flex-row items-center gap-2">
-              <input
-                type="date"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-                className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+        {/* KPIs */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 md:gap-x-6 md:gap-y-6 mb-6 w-full justify-items-stretch">
+          {[
+            { label: "Total Pendientes", value: stats.total, gradient: "linear-gradient(135deg, #f97316cc, #fb923c99)", icon: Clock, tooltip: "Número total de solicitudes pendientes." },
+            { label: "Monto Total (S/)", value: stats.totalSoles, gradient: "linear-gradient(135deg, #3b82f6cc, #60a5fa99)", icon: DollarSign, tooltip: "Monto acumulado en soles.", decimals: 2 },
+            { label: "Monto Total ($)", value: stats.totalDolares, gradient: "linear-gradient(135deg, #10b981cc, #34d39999)", icon: DollarSign, tooltip: "Monto acumulado en dólares.", decimals: 2 },
+            { label: "Promedio por Solicitud (S/)", value: stats.promedio, gradient: "linear-gradient(135deg, #f59e0bcc, #fcd34d99)", icon: DollarSign, tooltip: "Promedio por solicitud.", decimals: 2 },
+          ].map((kpi) => (
+            <div key={kpi.label} className="flex-1 min-w-0">
+              <KpiCard
+                label={kpi.label}
+                value={loading ? 0 : kpi.value}
+                icon={kpi.icon}
+                gradient={kpi.gradient}
+                tooltip={kpi.tooltip}
+                decimals={Number.isInteger(kpi.value) ? 0 : 2}
+                className="text-xs sm:text-sm md:text-base w-full p-2 sm:p-3"
               />
-              <span className="text-gray-400 text-xs hidden sm:inline">→</span>
-              <input
-                type="date"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-                className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
-              />
+            </div>
+          ))}
+        </div>
+
+        {/* Gráficos */}
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-6 w-full">
+          <ChartWrapped
+            title="Montos por Tipo de Solicitud (S/.)"
+            icon={<ChartBarDecreasing className="w-4 h-4" />}
+            className="flex-1 h-56 sm:h-64 md:h-80 lg:h-96 w-full"
+            tooltipFormatter={(val) => `S/ ${val.toLocaleString()}`}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dataMontoPorTipo} layout="vertical" margin={{ left: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={100} />
+                <Tooltip formatter={(val) => `S/ ${val.toLocaleString()}`} />
+                <Bar dataKey="value" barSize={40}>
+                  {dataMontoPorTipo.map((entry, i) => (
+                    <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartWrapped>
+
+          <ChartWrapped
+            title="Distribución por Tipo"
+            icon={<ChartColumnIncreasing className="w-4 h-4" />}
+            className="flex-1 h-56 sm:h-64 md:h-80 lg:h-96 w-full"
+            tooltipFormatter={tooltipFormatter}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dataTipo}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="name" />
+                <YAxis allowDecimals={false} />
+                <Tooltip formatter={tooltipFormatter} />
+                <Bar dataKey="value" barSize={40}>
+                  {dataTipo.map((entry, i) => (
+                    <Cell key={i} fill={TYPE_COLORS[entry.name] || "#9CA3AF"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartWrapped>
+        </div>
+
+        {/* Filtros */}
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-6 w-full overflow-x-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
+            {/* Solicitante */}
+            <div className="flex flex-col w-full">
+              <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Solicitante
+              </label>
+              <select
+                value={filtroSolicitante}
+                onChange={(e) => setFiltroSolicitante(e.target.value)}
+                className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none w-full"
+              >
+                <option value="">Todos</option>
+                {solicitantes.map((sol) => (
+                  <option key={sol} value={sol}>{sol}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tipo */}
+            <div className="flex flex-col w-full">
+              <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span> Tipo
+              </label>
+              <select
+                value={filtroTipo}
+                onChange={(e) => setFiltroTipo(e.target.value)}
+                className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none w-full"
+              >
+                <option value="">Todos</option>
+                {Object.keys(TYPE_COLORS).map((tipo_solicitud) => (
+                  <option key={tipo_solicitud} value={tipo_solicitud}>{tipo_solicitud}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Fechas */}
+            <div className="flex flex-col w-full">
+              <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span> Rango de Fechas
+              </label>
+              <div className="flex flex-col sm:flex-row items-center gap-2">
+                <input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
+                  className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+                />
+                <span className="text-gray-400 text-xs hidden sm:inline">→</span>
+                <input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => setFechaFin(e.target.value)}
+                  className="border rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-full sm:w-auto"
+                />
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Tabla */}
+        <div className="overflow-x-auto max-h-[70vh]">
+          <Table
+            headers={["N°", "Tipo", "S/.", "$", "Fecha", "Concepto", "Estado", "Acción"]}
+            data={solicitudesFiltradas}
+            emptyMessage="No hay solicitudes en este estado o rango de fechas."
+            renderRow={(s) => (
+              <>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 font-semibold text-center text-xs sm:text-sm">{s.numero_solicitud}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>
+                    {s.tipo_solicitud}
+                  </span>
+                </td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">{s.fecha}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[200px]">{s.concepto_gasto ?? "-"}</td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
+                </td>
+                <td className="px-1 sm:px-2 py-1 sm:py-2 text-center text-xs sm:text-sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAccion(s.id, "Presentar Documentación", s)}
+                    className="flex items-center gap-1 px-2 py-1"
+                  >
+                    <FileText className="w-4 h-4" /> Presentar
+                  </Button>
+                </td>
+              </>
+            )}
+          />
+        </div>
+
+        {/* Modals */}
+        {showPresentarModal && (
+          <PresentarDocumentacionModal
+            open={showPresentarModal}
+            onClose={() => setShowPresentarModal(false)}
+            solicitud={selectedSolicitud}
+          />
+        )}
+
       </div>
-
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <Table
-          headers={[
-            "N° Solicitud",
-            "Tipo",
-            "Monto (S/.)",
-            "Monto ($)",
-            "Fecha",
-            "Concepto",
-            "Estado",
-            "Acción",
-          ]}
-          data={solicitudesFiltradas}
-          emptyMessage="No hay solicitudes en este estado o rango de fechas."
-          renderRow={(s) => (
-            <>
-              <td className="px-2 sm:px-3 py-2 text-center font-semibold">{s.numero_solicitud}</td>
-              <td className="px-2 sm:px-3 py-2 text-center">
-                <span className={`text-xs px-2 py-1 rounded-full ${TIPO_SOLICITUD_CLASSES[s.tipo_solicitud] || "bg-gray-200 text-gray-700"}`}>{s.tipo_solicitud}</span>
-              </td>
-              <td className="px-2 sm:px-3 py-2 text-center">{s.total_soles ? `S/. ${s.total_soles}` : "-"}</td>
-              <td className="px-2 sm:px-3 py-2 text-center">{s.total_dolares ? `$ ${s.total_dolares}` : "-"}</td>
-              <td className="px-2 sm:px-3 py-2 text-center">{s.fecha}</td>
-              <td className="px-2 sm:px-3 py-2 text-center">{s.concepto_gasto ?? "-"}</td>
-              <td className="px-2 sm:px-3 py-2 text-center">
-                <span className={`text-xs px-2 py-1 rounded-full ${STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"}`}>{s.estado}</span>
-              </td>
-              <td className="px-2 sm:px-3 py-2 text-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAccion(s.id, "Presentar Documentación", s)}
-                  className="flex items-center justify-center gap-1 w-full sm:w-auto"
-                >
-                  <FileText className="w-4 h-4" /> Presentar
-                </Button>
-              </td>
-            </>
-          )}
-        />
-      </div>
-
-      {/* Modals */}
-      {showPresentarModal && (
-        <PresentarDocumentacionModal
-          open={showPresentarModal}
-          onClose={() => setShowPresentarModal(false)}
-          solicitud={selectedSolicitud}
-        />
-      )}
-
     </div>
   );
 }
