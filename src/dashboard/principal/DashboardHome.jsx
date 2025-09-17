@@ -1,4 +1,4 @@
-// src/dashboard/Layout/DashboardHome.jsx
+// src/dashboard/principal/DashboardHome.jsx
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -81,7 +81,7 @@ const DashboardHome = () => {
       <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-8 py-4 lg:py-6">
 
         {/* Encabezado */}
-        <header className="mb-4 sm:mb-6">
+        <header className="mb-6">
           <motion.h1
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -100,8 +100,8 @@ const DashboardHome = () => {
           </motion.p>
         </header>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
+        {/* KPIs: 2 columnas en móviles, 4 en pantallas grandes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 w-full">
           {kpis.map((kpi) => (
             <KpiCard
               key={kpi.label}
@@ -118,14 +118,15 @@ const DashboardHome = () => {
 
         {/* Gráficos */}
         <div className="flex flex-col lg:flex-row gap-6 mb-6 w-full">
+          {/* Tipo de solicitud */}
           <ChartWrapped
             title="Distribución por tipo de solicitud"
             icon={<PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />}
             tooltipFormatter={tooltipFormatter}
-            className="flex-1 h-64 sm:h-72 md:h-80 w-full"
+            className="flex-1 h-72 sm:h-80 md:h-96 w-full"
           >
-            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
-              <div className="flex-1 min-h-[180px]">
+            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch flex-wrap">
+              <div className="flex-1 min-h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RePieChart>
                     <Pie
@@ -145,7 +146,7 @@ const DashboardHome = () => {
                   </RePieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full lg:w-40 flex-shrink-0 mt-4 lg:mt-0">
+              <div className="w-full lg:w-44 flex-shrink-0 mt-4 lg:mt-0">
                 {datosTiposSolicitud.map((t) => (
                   <div key={t.name} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
                     <span style={{ width: 12, height: 12, background: TYPE_COLORS[t.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
@@ -157,14 +158,15 @@ const DashboardHome = () => {
             </div>
           </ChartWrapped>
 
+          {/* Estado de solicitudes */}
           <ChartWrapped
             title="Estado de solicitudes"
             icon={<BarChart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />}
             tooltipFormatter={radialTooltipFormatter}
-            className="flex-1 h-64 sm:h-72 md:h-80 w-full"
+            className="flex-1 h-72 sm:h-80 md:h-96 w-full"
           >
-            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch">
-              <div className="flex-1 min-h-[180px]">
+            <div className="flex flex-col lg:flex-row gap-4 h-full items-stretch flex-wrap">
+              <div className="flex-1 min-h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="95%" barSize={14} data={datosEstadosSolicitud}>
                     <RadialBar minAngle={15} background clockWise dataKey="value" cornerRadius={6}>
@@ -176,7 +178,7 @@ const DashboardHome = () => {
                   </RadialBarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-full lg:w-40 flex-shrink-0 mt-4 lg:mt-0">
+              <div className="w-full lg:w-44 flex-shrink-0 mt-4 lg:mt-0">
                 {datosEstadosSolicitud.map((e) => (
                   <div key={e.name} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
                     <span style={{ width: 12, height: 12, background: STATE_COLORS[e.name] || "#334155", display: "inline-block", borderRadius: 3 }} />
@@ -189,8 +191,8 @@ const DashboardHome = () => {
           </ChartWrapped>
         </div>
 
-        {/* Accesos rápidos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 w-full">
+        {/* Accesos rápidos con diseño profesional */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 w-full">
           {[
             { label: "Nueva Solicitud", icon: FilePlus, url: "/nueva-solicitud", bg: "blue", desc: "Registra una nueva solicitud de gasto." },
             { label: "Ver Liquidaciones", icon: PieChart, url: "/liquidaciones", bg: "emerald", desc: "Consulta el estado de tus liquidaciones." },
@@ -199,13 +201,13 @@ const DashboardHome = () => {
             <div
               key={btn.label}
               onClick={() => handleNavegar(btn.url)}
-              className={`group bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
+              className={`group bg-white border border-gray-200 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
             >
-              <div className={`rounded-full p-3 mb-3 bg-${btn.bg}-50 group-hover:bg-${btn.bg}-100 transition`}>
-                <btn.icon size={24} className={`text-${btn.bg}-600`} />
+              <div className={`rounded-full p-4 mb-4 bg-${btn.bg}-50 group-hover:bg-${btn.bg}-100 transition`}>
+                <btn.icon size={28} className={`text-${btn.bg}-600`} />
               </div>
-              <h4 className="font-semibold text-gray-800 text-base text-center">{btn.label}</h4>
-              <p className="text-sm text-gray-500 text-center mt-1">{btn.desc}</p>
+              <h4 className="font-semibold text-gray-800 text-base sm:text-lg text-center">{btn.label}</h4>
+              <p className="text-sm sm:text-base text-gray-500 text-center mt-1">{btn.desc}</p>
             </div>
           ))}
         </div>
