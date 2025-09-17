@@ -103,18 +103,20 @@ const DashboardHome = () => {
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 w-full">
           {kpis.map((kpi) => (
-            <KpiCard
-              key={kpi.label}
-              label={kpi.label}
-              value={loading ? 0 : kpi.value}
-              icon={kpi.icon}
-              gradient={kpi.gradient}
-              tooltip={kpi.tooltip}
-              decimals={Number.isInteger(kpi.value) ? 0 : 2}
-              className="text-sm sm:text-base md:text-base"
-            />
+            <div key={kpi.label} className="flex-1">
+              <KpiCard
+                label={kpi.label}
+                value={loading ? 0 : kpi.value}
+                icon={kpi.icon}
+                gradient={kpi.gradient}
+                tooltip={kpi.tooltip}
+                decimals={Number.isInteger(kpi.value) ? 0 : 2}
+                className="text-sm sm:text-base md:text-base w-full"
+              />
+            </div>
           ))}
         </div>
+
 
         {/* Gráficos */}
         <div className="flex flex-col lg:flex-row gap-6 mb-6 w-full">
