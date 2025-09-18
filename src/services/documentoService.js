@@ -1,8 +1,11 @@
 // src/services/documentoService.js
-
 import axios from "axios";
 
-const API_BASE = "http://localhost:8000/api/boleta/documentos";
+/* 🌐 URL dinámica: local en desarrollo, Render en producción */
+const API_BASE =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:8000/api/boleta/documentos"
+    : "https://proyecto-caja-chica-backend.onrender.com/api/boleta/documentos";
 
 /* ========== 🧩 SERVICIO DE DOCUMENTOS OCR Y GASTOS ========== */
 
@@ -22,16 +25,16 @@ export const procesarDocumentoOCR = async (formData) => {
 
     const response = await axios.post(`${API_BASE}/procesar/`, formData, {
       headers: {
-        "Accept": "application/json",
-        // axios ya setea boundary automáticamente, no lo forzamos
+        Accept: "application/json",
+        // axios ya setea boundary automáticamente
       },
-      timeout: 60000, // ⏳ más tiempo por si la red móvil es lenta
+      timeout: 60000, // ⏳ más tiempo por red móvil lenta
     });
 
     const { datos_detectados } = response.data || {};
     console.log("✅ OCR recibido:", datos_detectados);
 
-    // Validaciones mínimas en campos críticos
+    // Validaciones mínimas
     const camposObligatorios = ["ruc"];
     const faltantes = camposObligatorios.filter(
       (campo) =>
@@ -48,7 +51,6 @@ export const procesarDocumentoOCR = async (formData) => {
   } catch (error) {
     console.error("❌ Error procesando OCR:", error);
 
-    // Log más detallado en móvil
     if (error.response) {
       console.error("📡 Respuesta backend:", error.response.data);
     } else if (error.request) {
@@ -88,7 +90,7 @@ export const guardarDocumentoGasto = async (formData) => {
   try {
     const response = await axios.post(`${API_BASE}/guardar/`, formData, {
       headers: {
-        "Accept": "application/json",
+        Accept: "application/json",
       },
       timeout: 60000,
     });
