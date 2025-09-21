@@ -1,17 +1,11 @@
 // src/dashboard/liquidaciones/SubirArchivoModal.jsx
 import React, { useState, useEffect } from "react";
-import { procesarDocumentoOCR } from "@/services/documentoService";
 import { Camera, FileUp, X, CheckCircle, Paperclip, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import api from "@/services/api";
 
-export default function SubirArchivoModal({
-  idSolicitud,
-  tipoSolicitud,
-  open,
-  onClose,
-  onProcesado,
-}) {
+export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, onClose, onProcesado }) {
   const [tipoDocumento, setTipoDocumento] = useState("Boleta");
   const [archivo, setArchivo] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -19,7 +13,6 @@ export default function SubirArchivoModal({
   const [errorOCR, setErrorOCR] = useState(null);
   const [totalManual, setTotalManual] = useState("");
 
-  // Detectar si es móvil o tablet
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -28,30 +21,27 @@ export default function SubirArchivoModal({
 
   const handleArchivoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Validar tamaño máximo de 10MB
-      if (file.size > 10 * 1024 * 1024) {
-        alert("⚠️ El archivo supera el límite de 10 MB. Por favor selecciona uno más liviano.");
-        return;
-      }
+    if (!file) return;
 
-      // Normalizar tipo de archivo (iOS usa HEIC/HEIF)
-      let mimeType = file.type;
-      if (mimeType === "image/heic" || mimeType === "image/heif") {
-        mimeType = "image/jpeg";
-      }
+    if (file.size > 10 * 1024 * 1024) {
+      alert("⚠️ El archivo supera el límite de 10 MB.");
+      return;
+    }
 
-      const validTypes = ["image/jpeg", "image/png", "application/pdf"];
-      if (!validTypes.includes(mimeType)) {
-        alert("⚠️ Solo se permiten imágenes JPG/PNG o archivos PDF.");
-        return;
-      }
+    let mimeType = file.type;
+    if (mimeType === "image/heic" || mimeType === "image/heif") mimeType = "image/jpeg";
 
-      setArchivo(file);
-      setErrorOCR(null);
-      setTotalManual("");
+    const validTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (!validTypes.includes(mimeType)) {
+      alert("⚠️ Solo se permiten imágenes JPG/PNG o archivos PDF.");
+      return;
+    }
 
-      // Generar preview en móviles
+    setArchivo(file);
+    setErrorOCR(null);
+    setTotalManual("");
+
+    if (isMobile) {
       const reader = new FileReader();
       reader.onloadend = () => setPreview(reader.result);
       reader.readAsDataURL(file);
@@ -64,6 +54,12 @@ export default function SubirArchivoModal({
       return;
     }
 
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("⚠️ No se encontró token. Debes iniciar sesión.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("archivo", archivo, archivo.name);
     formData.append("tipo_documento", tipoDocumento);
@@ -73,25 +69,47 @@ export default function SubirArchivoModal({
       setCargando(true);
       setErrorOCR(null);
 
-      const ocrResponse = await procesarDocumentoOCR(formData);
-      console.log("📦 OCR recibido:", ocrResponse);
+      // 1️⃣ Llamar al endpoint que dispara Celery
+      const res = await api.post("/procesar_documento/", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      // Ahora el objeto ya está directamente en ocrResponse[0]
-      const datos = Array.isArray(ocrResponse) && ocrResponse.length ? ocrResponse[0] : {};
+      const { task_id } = res.data;
+      if (!task_id) throw new Error("No se recibió task_id");
 
-      let total = datos.total?.toString().replace(",", ".") || totalManual;
-      if (total) {
-        total = parseFloat(total);
-        if (isNaN(total)) total = null;
+      // 2️⃣ Polling para obtener resultado
+      let resultado = null;
+      const startTime = Date.now();
+      const timeout = 60000; // 60s máximo
+
+      while (!resultado) {
+        const pollRes = await api.get(`/procesar_documento/status/${task_id}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (pollRes.data.status === "SUCCESS") {
+          resultado = pollRes.data.result;
+        } else if (pollRes.data.status === "FAILURE") {
+          throw new Error(pollRes.data.error || "Error en OCR");
+        } else if (Date.now() - startTime > timeout) {
+          throw new Error("Timeout procesando OCR");
+        } else {
+          await new Promise((r) => setTimeout(r, 1000)); // esperar 1s
+        }
       }
+
+      // 3️⃣ Construir objeto documento
+      let total = resultado.total?.toString().replace(",", ".") || totalManual;
+      if (total) total = parseFloat(total);
+      if (isNaN(total)) total = null;
 
       const doc = {
         nombre_archivo: archivo.name,
         tipo_documento: tipoDocumento,
-        numero_documento: datos.numero_documento || "",
-        fecha: datos.fecha || "",
-        ruc: datos.ruc || "",
-        razon_social: datos.razon_social || "",
+        numero_documento: resultado.numero_documento || "",
+        fecha: resultado.fecha || "",
+        ruc: resultado.ruc || "",
+        razon_social: resultado.razon_social || "",
         total: total || "",
         archivo,
       };
@@ -104,9 +122,9 @@ export default function SubirArchivoModal({
 
       onProcesado(doc);
       onClose();
-    } catch (error) {
-      console.error("❌ Error procesando OCR:", error);
-      setErrorOCR("No se pudo procesar el documento. Intenta nuevamente.");
+    } catch (err) {
+      console.error("❌ Error procesando OCR:", err);
+      setErrorOCR(err.message || "No se pudo procesar el documento.");
     } finally {
       setCargando(false);
     }
@@ -123,11 +141,8 @@ export default function SubirArchivoModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Tipo de documento */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Tipo de Documento
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Tipo de Documento</label>
             <select
               value={tipoDocumento}
               onChange={(e) => setTipoDocumento(e.target.value)}
@@ -141,58 +156,34 @@ export default function SubirArchivoModal({
             </select>
           </div>
 
-          {/* Botones de carga */}
           <div className="flex flex-col sm:flex-row gap-2">
-            {/* Botón Cámara */}
             <label className="flex-1 cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleArchivoChange}
-                style={{ display: "none" }}
-              />
+              <input type="file" accept="image/*" capture="environment" onChange={handleArchivoChange} style={{ display: "none" }} />
               <span className="bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white text-sm px-4 py-2 rounded-lg shadow-md flex items-center gap-2 justify-center w-full sm:w-auto">
                 <Camera className="w-4 h-4" /> Cámara
               </span>
             </label>
 
-            {/* Botón Archivo */}
             <label className="flex-1 cursor-pointer">
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleArchivoChange}
-                style={{ display: "none" }}
-              />
+              <input type="file" accept="image/*,application/pdf" onChange={handleArchivoChange} style={{ display: "none" }} />
               <span className="bg-gradient-to-r from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400 text-white text-sm px-4 py-2 rounded-lg shadow-md flex items-center gap-2 justify-center w-full sm:w-auto">
                 <FileUp className="w-4 h-4" /> Archivo
               </span>
             </label>
           </div>
 
-          {/* Archivo seleccionado */}
           {archivo && (
             <div className="mt-2 space-y-2">
               <p className="text-xs text-gray-600 flex items-center gap-1 truncate">
                 <Paperclip className="w-4 h-4" /> {archivo.name}
               </p>
-              {preview && (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="max-h-40 rounded-md border mx-auto"
-                />
-              )}
+              {preview && <img src={preview} alt="Preview" className="max-h-40 rounded-md border mx-auto" />}
             </div>
           )}
 
-          {/* Campo total manual */}
           {!errorOCR && archivo && (
             <div className="mt-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Total (si OCR no lo detecta)
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Total (si OCR no lo detecta)</label>
               <input
                 type="number"
                 step="0.01"
@@ -212,25 +203,11 @@ export default function SubirArchivoModal({
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 justify-center w-full sm:w-auto"
-          >
+          <Button variant="outline" onClick={onClose} className="bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 justify-center w-full sm:w-auto">
             <X className="w-4 h-4" /> Cerrar
           </Button>
-          <Button
-            onClick={handleProcesar}
-            disabled={cargando}
-            className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 justify-center w-full sm:w-auto"
-          >
-            {cargando ? (
-              "Procesando..."
-            ) : (
-              <>
-                <CheckCircle className="w-4 h-4" /> Procesar
-              </>
-            )}
+          <Button onClick={handleProcesar} disabled={cargando} className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 justify-center w-full sm:w-auto">
+            {cargando ? "Procesando..." : <><CheckCircle className="w-4 h-4" /> Procesar</>}
           </Button>
         </DialogFooter>
       </DialogContent>
