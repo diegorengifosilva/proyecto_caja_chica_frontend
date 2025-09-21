@@ -1,5 +1,4 @@
 // boleta_project/frontend/src/components/ui/Table.jsx
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +13,7 @@ const Table = ({
   activeRow = null,
   rowsPerPage = 10,
   onDeleteRow,
+  onRowClick, // 👈 nuevo prop opcional
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -29,7 +29,6 @@ const Table = ({
   return (
     <Card className="rounded-2xl shadow-md border border-gray-200 flex-1 flex flex-col">
       <CardContent className="p-0 flex-1 flex flex-col">
-
         {/* Contenedor scrollable horizontal */}
         <div className="w-full flex-1 overflow-x-auto">
           <table className="w-full table-auto text-sm text-center border-collapse">
@@ -66,6 +65,9 @@ const Table = ({
                           ? "bg-blue-50 border-l-4 border-blue-500 shadow-sm"
                           : "hover:bg-gray-50 hover:shadow-md hover:ring-1 hover:ring-gray-200 cursor-pointer"
                       }`}
+                      onClick={() => {
+                        if (onRowClick) onRowClick(item); // 👈 aquí llamamos al handler si existe
+                      }}
                     >
                       {Array.isArray(renderRow(item))
                         ? renderRow(item).map((cell, i) => (
@@ -123,7 +125,9 @@ const Table = ({
                   variant={page === currentPage ? "default" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page)}
-                  className={`w-8 h-8 rounded-full ${page === currentPage ? "bg-blue-500 text-white hover:bg-blue-600" : "hover:bg-gray-100"}`}
+                  className={`w-8 h-8 rounded-full ${
+                    page === currentPage ? "bg-blue-500 text-white hover:bg-blue-600" : "hover:bg-gray-100"
+                  }`}
                 >
                   {page}
                 </Button>
