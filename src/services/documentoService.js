@@ -10,6 +10,7 @@ const api = axios.create({
   timeout: 60000,
   headers: {
     Accept: "application/json",
+    // ⚡ Content-Type se maneja automáticamente para FormData
   },
   withCredentials: true, // 🔹 obligatorio para CORS con cookies/JWT
 });
@@ -20,12 +21,7 @@ const manejarError = (error, mensajeDefault) => {
 
   if (error.response) {
     console.error("📡 Respuesta backend:", error.response.data);
-    // Si recibimos HTML en vez de JSON, mostrar todo
-    const detalle =
-      typeof error.response.data === "string"
-        ? error.response.data
-        : error.response.data.error;
-    throw new Error(detalle || mensajeDefault);
+    throw new Error(error.response.data.error || mensajeDefault);
   } else if (error.request) {
     console.error("📡 Sin respuesta del servidor:", error.request);
     throw new Error("No hay respuesta del servidor. Revisa tu conexión.");
@@ -37,55 +33,32 @@ const manejarError = (error, mensajeDefault) => {
 /* ========== 🧩 SERVICIO DE DOCUMENTOS OCR Y GASTOS ========== */
 
 /**
- * Procesa un documento (imagen/PDF) con OCR en el backend usando Celery.
- * Retorna task_id para polling sin bloquear la UI.
+ * Procesa un documento (imagen/PDF) con OCR en el backend.
  * @param {FormData} formData
  */
 export const procesarDocumentoOCR = async (formData) => {
   try {
     // ⚡ DEBUG: mostrar payload enviado
-    console.log("📤 Enviando FormData:");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
+    for (let pair of formData.entries()) {
+      console.log("📤 Enviando:", pair[0], pair[1]);
     }
 
-    const response = await api.post("/procesar/", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const response = await api.post("/procesar/", formData);
 
-    // ⚠️ Mostrar respuesta completa para depuración
-    console.log("📥 Respuesta completa:", response);
+    const resultados = response.data?.resultado || [];
+    console.log("✅ OCR recibido:", resultados);
 
-    if (!response.data || !response.data.task_id) {
-      console.error("⚠️ Response.data:", response.data);
-      throw new Error(
-        "No se recibió task_id del servidor. Verifica la URL y el backend."
-      );
+    if (resultados.length === 0) {
+      console.warn("⚠️ No se detectaron datos en el OCR");
+      return null;
     }
 
-    console.log("✅ Tarea OCR iniciada, task_id:", response.data.task_id);
-    return { task_id: response.data.task_id };
+    // Retornamos directamente todos los resultados (por si hay varias páginas)
+    return resultados.map((r) => r.datos_detectados || {});
   } catch (error) {
     manejarError(
       error,
       "No se pudo procesar el documento. Intenta nuevamente con otra imagen o revisa tu conexión."
-    );
-  }
-};
-
-/**
- * Obtiene el estado y resultado de una tarea OCR por task_id (Celery)
- * @param {string} taskId
- */
-export const obtenerEstadoOCR = async (taskId) => {
-  try {
-    const response = await api.get(`/status/${taskId}/`);
-    console.log(`📡 Estado OCR task_id ${taskId}:`, response.data);
-    return response.data;
-  } catch (error) {
-    manejarError(
-      error,
-      `No se pudo obtener el estado del OCR para task_id ${taskId}.`
     );
   }
 };
