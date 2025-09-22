@@ -183,13 +183,13 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                   hoverFrom="#2563eb"
                   hoverTo="#3b82f6"
                   size="default"
+                  className="flex items-center gap-2 justify-center"
                 >
                   <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   {updating && accion === "enviar" ? "Procesando..." : "Enviar Solicitud"}
                 </Button>
               )}
             </div>
-
 
             {/* Modal de confirmación */}
             {confirmOpen && accion === "enviar" && (
@@ -205,12 +205,12 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                   </p>
                   <div className="mt-5 flex justify-end gap-3 flex-wrap">
                     <Button
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2"
                       onClick={() => setConfirmOpen(false)}
-                      fromColor="#ef4444"     // rojo degradado para cancelar
-                      toColor="#dc2626"
-                      hoverFrom="#b91c1c"
-                      hoverTo="#991b1b"
+                      fromColor="#ef4444"   // rojo degradado base
+                      toColor="#dc2626"     // rojo degradado final
+                      hoverFrom="#b91c1c"   // rojo hover inicio
+                      hoverTo="#991b1b"     // rojo hover final
                     >
                       Cancelar
                     </Button>
@@ -240,14 +240,14 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                         }
                       }}
                       disabled={updating}
-                      fromColor="#3b82f6"   // azul degradado para acción
-                      toColor="#2563eb"
-                      hoverFrom="#1d4ed8"
-                      hoverTo="#1e40af"
+                      fromColor="#3b82f6"   // azul degradado base
+                      toColor="#2563eb"     // azul degradado final
+                      hoverFrom="#1d4ed8"   // azul hover inicio
+                      hoverTo="#1e40af"     // azul hover final
                       size="default"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2"
                     >
-                      Sí, enviar
+                      {updating ? "Procesando..." : "Sí, enviar"}
                     </Button>
                   </div>
                 </DialogContent>
