@@ -1,5 +1,5 @@
 // src/dashboard/liquidaciones/SubirArchivoModal.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { procesarDocumentoOCR } from "@/services/documentoService";
 import { Camera, FileUp, X, CheckCircle, Paperclip, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -10,9 +10,8 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
   const [preview, setPreview] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [errorOCR, setErrorOCR] = useState(null);
-  const [totalManual, setTotalManual] = useState("");
+  const fileInputRef = useRef(null);
 
-  // Detectar móvil
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     setIsMobile(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
@@ -22,13 +21,11 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validar tamaño máximo 10MB
     if (file.size > 10 * 1024 * 1024) {
       alert("⚠️ El archivo supera el límite de 10 MB. Por favor selecciona uno más liviano.");
       return;
     }
 
-    // Normalizar tipo de archivo
     let mimeType = file.type;
     if (mimeType === "image/heic" || mimeType === "image/heif") mimeType = "image/jpeg";
 
@@ -40,9 +37,7 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
 
     setArchivo(file);
     setErrorOCR(null);
-    setTotalManual("");
 
-    // Generar preview en móviles
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result);
     reader.readAsDataURL(file);
@@ -65,12 +60,6 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
       const ocrResponse = await procesarDocumentoOCR(formData);
       const datos = Array.isArray(ocrResponse) && ocrResponse.length ? ocrResponse[0] : {};
 
-      let total = datos.total?.toString().replace(",", ".") || totalManual;
-      if (total) {
-        total = parseFloat(total);
-        if (isNaN(total)) total = null;
-      }
-
       const doc = {
         nombre_archivo: archivo.name,
         tipo_documento: datos.tipo_documento || "Otros",
@@ -78,7 +67,7 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
         fecha: datos.fecha || "",
         ruc: datos.ruc || "",
         razon_social: datos.razon_social || "",
-        total: total || "",
+        total: datos.total || "",
         archivo,
       };
 
@@ -98,7 +87,6 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
     }
   };
 
-  // Botones dependiendo de dispositivo
   const botones = isMobile
     ? [
         { label: "Cámara", icon: <Camera className="w-4 h-4" />, accept: "image/*", capture: "environment", fromColor: "#60a5fa", toColor: "#3b82f6", hoverFrom: "#3b82f6", hoverTo: "#2563eb" },
@@ -111,69 +99,80 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] sm:max-w-md md:max-w-lg lg:max-w-xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="w-[95vw] max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl 2xl:max-w-[1024px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 mx-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
             <FileUp className="w-5 h-5 text-gray-700" />
             Subir Documento - Solicitud # {idSolicitud}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Botones de carga */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            {botones.map((btn, idx) => {
-              let inputRef = React.createRef();
-
-              return (
-                <div key={idx} className="flex-1">
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    accept={btn.accept}
-                    capture={btn.capture}
-                    onChange={handleArchivoChange}
-                    style={{ display: "none" }}
-                  />
-                  <Button
-                    fromColor={btn.fromColor}
-                    toColor={btn.toColor}
-                    hoverFrom={btn.hoverFrom}
-                    hoverTo={btn.hoverTo}
-                    className="flex items-center gap-2 justify-center w-full sm:w-auto"
-                    onClick={() => inputRef.current && inputRef.current.click()} // Dispara el input
-                  >
-                    {btn.icon} {btn.label}
-                  </Button>
-                </div>
-              );
-            })}
+        <div className="space-y-5">
+          {/* Área Drag & Drop */}
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-md p-4 sm:p-6 text-center cursor-pointer hover:border-blue-400 transition relative"
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (e.dataTransfer.files && e.dataTransfer.files[0]) handleArchivoChange({ target: { files: e.dataTransfer.files } });
+            }}
+          >
+            <input ref={fileInputRef} type="file" accept="image/*,application/pdf" style={{ display: "none" }} onChange={handleArchivoChange} />
+            {archivo ? (
+              <div className="flex flex-col items-center gap-2">
+                {preview ? (
+                  <img src={preview} alt="Preview" className="max-h-40 w-auto rounded-md border shadow-sm object-contain" />
+                ) : (
+                  <Paperclip className="w-8 h-8 text-gray-500" />
+                )}
+                <p className="text-sm text-gray-600 truncate">{archivo.name}</p>
+              </div>
+            ) : (
+              <>
+                <FileUp className="w-8 h-8 mx-auto text-gray-400" />
+                <p className="text-sm sm:text-base text-gray-500 mt-2">Arrastra un archivo aquí o haz clic para seleccionar</p>
+              </>
+            )}
           </div>
 
-          {/* Archivo seleccionado */}
-          {archivo && (
-            <div className="mt-2 space-y-2 text-center">
-              <p className="text-xs text-gray-600 flex items-center justify-center gap-1 break-words">
-                <Paperclip className="w-4 h-4" /> {archivo.name}
-              </p>
-              {preview && <img src={preview} alt="Preview" className="max-h-40 w-auto mx-auto rounded-md border" />}
+          {/* Botones de carga */}
+          {botones.length > 0 && (
+            <div className="w-full flex justify-center">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 w-full max-w-5xl">
+                {botones.map((btn, idx) => {
+                  const inputRef = React.createRef();
+                  return (
+                    <div key={idx} className="flex justify-center">
+                      <input
+                        ref={inputRef}
+                        type="file"
+                        accept={btn.accept}
+                        capture={btn.capture}
+                        onChange={handleArchivoChange}
+                        style={{ display: "none" }}
+                      />
+                      <Button
+                        fromColor={btn.fromColor}
+                        toColor={btn.toColor}
+                        hoverFrom={btn.hoverFrom}
+                        hoverTo={btn.hoverTo}
+                        className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full sm:w-full min-w-[150px] max-w-[300px] px-5 py-3 text-sm sm:text-base truncate transition-all"
+                        onClick={() => inputRef.current && inputRef.current.click()}
+                      >
+                        {btn.icon} <span className="truncate">{btn.label}</span>
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Campo total manual */}
-          {!errorOCR && archivo && (
-            <div className="mt-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Total (si OCR no lo detecta)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={totalManual}
-                onChange={(e) => setTotalManual(e.target.value)}
-                className="mt-1 p-2 w-full border rounded-md focus:ring focus:ring-blue-200 text-sm"
-                placeholder="Ej. 150.75"
-              />
+          {/* Barra de progreso */}
+          {cargando && (
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div className="bg-blue-500 h-2 rounded-full animate-progress" style={{ width: "70%" }} />
             </div>
           )}
 
@@ -185,8 +184,8 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
           )}
         </div>
 
-        {/* Botones */}
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+        {/* Footer */}
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4">
           <Button
             variant="default"
             fromColor="#f87171"
