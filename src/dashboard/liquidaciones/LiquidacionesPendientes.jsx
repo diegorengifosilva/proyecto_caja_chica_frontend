@@ -243,8 +243,12 @@ export default function LiquidacionesPendientes() {
               </span>,
               <div className="hidden md:flex justify-center">
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
+                  fromColor="#a8d8d8"       // color base
+                  toColor="#81c7c7"         // degradado suave
+                  hoverFrom="#81c7c7"       // hover inicio
+                  hoverTo="#5eb0b0"         // hover fin
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedSolicitud(s);

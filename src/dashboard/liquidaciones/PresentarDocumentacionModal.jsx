@@ -171,7 +171,11 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
                   <Button
                     size="sm"
                     onClick={() => setShowSubirArchivoModal(true)}
-                    className="bg-gradient-to-r from-violet-400 to-violet-500 hover:from-violet-500 hover:to-violet-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 w-full sm:w-auto"
+                    fromColor="#8b5cf6"    // violeta inicial
+                    toColor="#a78bfa"       // violeta final
+                    hoverFrom="#7c3aed"     // hover inicial
+                    hoverTo="#6d28d9"       // hover final
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     <Plus className="h-4 w-4" /> Agregar
                   </Button>
@@ -220,14 +224,23 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
           <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
               onClick={onClose}
-              className="bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
+              fromColor="#f87171"      // rojo inicial
+              toColor="#ef4444"        // rojo final
+              hoverFrom="#ef4444"      // hover inicial
+              hoverTo="#dc2626"        // hover final
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <X className="w-4 h-4" /> Cancelar
             </Button>
+
             <Button
               onClick={handlePresentarLiquidacion}
               disabled={loading || documentos.length === 0}
-              className="bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto"
+              fromColor="#60a5fa"      // azul inicial
+              toColor="#3b82f6"        // azul final
+              hoverFrom="#3b82f6"      // hover inicial
+              hoverTo="#2563eb"        // hover final
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Send className="w-4 h-4" /> {loading ? "Presentando..." : "Presentar Liquidación"}
             </Button>

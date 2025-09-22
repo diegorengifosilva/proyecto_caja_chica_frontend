@@ -116,8 +116,8 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
           {/* Botones de carga */}
           <div className="flex flex-col sm:flex-row gap-2">
             {[
-              { label: "Cámara", icon: <Camera className="w-4 h-4" />, accept: "image/*", capture: true },
-              { label: "Archivo", icon: <FileUp className="w-4 h-4" />, accept: "image/*,application/pdf" },
+              { label: "Cámara", icon: <Camera className="w-4 h-4" />, accept: "image/*", capture: true, fromColor: "#60a5fa", toColor: "#3b82f6", hoverFrom: "#3b82f6", hoverTo: "#2563eb" },
+              { label: "Archivo", icon: <FileUp className="w-4 h-4" />, accept: "image/*,application/pdf", fromColor: "#fcd34d", toColor: "#fbbf24", hoverFrom: "#fbbf24", hoverTo: "#f59e0b" },
             ].map((btn, idx) => (
               <label key={idx} className="flex-1 cursor-pointer">
                 <input
@@ -127,15 +127,15 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
                   onChange={handleArchivoChange}
                   style={{ display: "none" }}
                 />
-                <span
-                  className={`${
-                    btn.label === "Cámara"
-                      ? "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600"
-                      : "bg-gradient-to-r from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400"
-                  } text-white text-sm px-4 py-2 rounded-lg shadow-md flex items-center gap-2 justify-center w-full sm:w-auto`}
+                <Button
+                  fromColor={btn.fromColor}
+                  toColor={btn.toColor}
+                  hoverFrom={btn.hoverFrom}
+                  hoverTo={btn.hoverTo}
+                  className="flex items-center gap-2 justify-center w-full sm:w-auto"
                 >
                   {btn.icon} {btn.label}
-                </span>
+                </Button>
               </label>
             ))}
           </div>
@@ -184,16 +184,26 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
         {/* Botones */}
         <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <Button
-            variant="outline"
+            variant="default"
+            fromColor="#f87171" // rojo claro
+            toColor="#ef4444"   // rojo medio
+            hoverFrom="#ef4444"
+            hoverTo="#dc2626"
+            className="flex items-center gap-2 justify-center w-full sm:w-auto"
             onClick={onClose}
-            className="bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 justify-center w-full sm:w-auto"
           >
             <X className="w-4 h-4" /> Cerrar
           </Button>
+
           <Button
+            variant="default"
+            fromColor="#34d399" // verde claro
+            toColor="#10b981"   // verde medio
+            hoverFrom="#10b981"
+            hoverTo="#059669"
+            className="flex items-center gap-2 justify-center w-full sm:w-auto"
             onClick={handleProcesar}
             disabled={cargando}
-            className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2 justify-center w-full sm:w-auto"
           >
             {cargando ? "Procesando..." : <><CheckCircle className="w-4 h-4" /> Procesar</>}
           </Button>
