@@ -115,28 +115,44 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
         <div className="space-y-4">
           {/* Botones de carga */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <label className="flex-1 cursor-pointer">
-              <input type="file" accept="image/*" capture="environment" onChange={handleArchivoChange} style={{ display: "none" }} />
-              <span className="bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white text-sm px-4 py-2 rounded-lg shadow-md flex items-center gap-2 justify-center w-full sm:w-auto">
-                <Camera className="w-4 h-4" /> Cámara
-              </span>
-            </label>
-
-            <label className="flex-1 cursor-pointer">
-              <input type="file" accept="image/*,application/pdf" onChange={handleArchivoChange} style={{ display: "none" }} />
-              <span className="bg-gradient-to-r from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400 text-white text-sm px-4 py-2 rounded-lg shadow-md flex items-center gap-2 justify-center w-full sm:w-auto">
-                <FileUp className="w-4 h-4" /> Archivo
-              </span>
-            </label>
+            {[
+              { label: "Cámara", icon: <Camera className="w-4 h-4" />, accept: "image/*", capture: true },
+              { label: "Archivo", icon: <FileUp className="w-4 h-4" />, accept: "image/*,application/pdf" },
+            ].map((btn, idx) => (
+              <label key={idx} className="flex-1 cursor-pointer">
+                <input
+                  type="file"
+                  accept={btn.accept}
+                  capture={btn.capture ? "environment" : undefined}
+                  onChange={handleArchivoChange}
+                  style={{ display: "none" }}
+                />
+                <span
+                  className={`${
+                    btn.label === "Cámara"
+                      ? "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600"
+                      : "bg-gradient-to-r from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400"
+                  } text-white text-sm px-4 py-2 rounded-lg shadow-md flex items-center gap-2 justify-center w-full sm:w-auto`}
+                >
+                  {btn.icon} {btn.label}
+                </span>
+              </label>
+            ))}
           </div>
 
           {/* Archivo seleccionado */}
           {archivo && (
-            <div className="mt-2 space-y-2">
-              <p className="text-xs text-gray-600 flex items-center gap-1 truncate">
+            <div className="mt-2 space-y-2 text-center">
+              <p className="text-xs text-gray-600 flex items-center justify-center gap-1 break-words">
                 <Paperclip className="w-4 h-4" /> {archivo.name}
               </p>
-              {preview && <img src={preview} alt="Preview" className="max-h-40 rounded-md border mx-auto" />}
+              {preview && (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="max-h-40 w-auto mx-auto rounded-md border"
+                />
+              )}
             </div>
           )}
 
@@ -157,6 +173,7 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
             </div>
           )}
 
+          {/* Mensaje de error */}
           {errorOCR && (
             <p className="text-sm text-red-600 bg-red-100 rounded p-2 flex items-center gap-2">
               <AlertCircle className="w-4 h-4" /> {errorOCR}
@@ -164,6 +181,7 @@ export default function SubirArchivoModal({ idSolicitud, tipoSolicitud, open, on
           )}
         </div>
 
+        {/* Botones */}
         <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <Button
             variant="outline"
