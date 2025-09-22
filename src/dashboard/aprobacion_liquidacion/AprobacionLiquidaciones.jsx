@@ -10,15 +10,29 @@ import ConfirmacionModal from "./ConfirmacionModal";
 import KpiCard from "@/components/ui/KpiCard";
 import Table from "@/components/ui/table";
 import ChartWrapped, { tooltipFormatter, radialTooltipFormatter } from "@/components/ui/ChartWrapped";
-import { RefreshCw, DollarSign, FileText, CheckCircle2, XCircle, PieChart, Eye } from "lucide-react";
-import { STATE_CLASSES, STATE_COLORS, TYPE_COLORS } from "@/components/ui/colors";
+import { RefreshCw, DollarSign, FileText, CheckCircle2, XCircle, Eye, PieChart as PieChartIcon } from "lucide-react";
+import { STATE_CLASSES, STATE_COLORS } from "@/components/ui/colors";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  RadialBarChart,
+  RadialBar,
+  Cell,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from 'recharts';
 
 const TASA_CAMBIO = 3.52;
 
 export default function AprobacionLiquidaciones() {
   const { authUser: user, logout } = useAuth();
 
-  // Tabla y todos los datos
+  // Tabla y datos
   const [liquidacionesTabla, setLiquidacionesTabla] = useState([]);
   const [liquidacionesAll, setLiquidacionesAll] = useState([]);
   const [loadingTabla, setLoadingTabla] = useState(true);
@@ -27,7 +41,6 @@ export default function AprobacionLiquidaciones() {
   const [errorAll, setErrorAll] = useState(null);
 
   // Modales y selección
-  const [selectedId, setSelectedId] = useState(null);
   const [selectedLiquidacion, setSelectedLiquidacion] = useState(null);
   const [accion, setAccion] = useState("");
   const [detalleModalOpen, setDetalleModalOpen] = useState(false);
@@ -44,10 +57,7 @@ export default function AprobacionLiquidaciones() {
       const token = localStorage.getItem("access_token");
       const { data } = await api.get("/boleta/liquidaciones_pendientes/", {
         headers: { Authorization: `Bearer ${token}` },
-        params: {
-          destinatario_id: user.id,
-          estado: "Liquidación enviada para Aprobación",
-        },
+        params: { destinatario_id: user.id, estado: "Liquidación enviada para Aprobación" },
       });
       setLiquidacionesTabla(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -102,7 +112,7 @@ export default function AprobacionLiquidaciones() {
   // -------------------------------
   // KPIs y gráficos
   // -------------------------------
-  const { kpis, serie, estados, tipos } = useMemo(() => {
+  const { kpis, serie, estados } = useMemo(() => {
     const liqus = liquidacionesAll;
     const totalPendientes = liqus.filter(l => l.estado === "Liquidación enviada para Aprobación").length;
     const totalAprobadas = liqus.filter(l => l.estado === "Aprobado").length;
@@ -126,18 +136,15 @@ export default function AprobacionLiquidaciones() {
       list.push({ dia: key, pendientes: byDayMap.get(key) || 0 });
     }
 
-    // Conteo por estado y tipo
+    // Conteo por estado
     const estadoCounts = {};
-    const tipoCounts = {};
     liqus.forEach((l) => {
       estadoCounts[l.estado] = (estadoCounts[l.estado] || 0) + 1;
-      tipoCounts[l.tipo] = (tipoCounts[l.tipo] || 0) + 1;
     });
 
     const estadosData = Object.entries(estadoCounts).map(([name, value]) => ({ name, value }));
-    const tiposData = Object.entries(tipoCounts).map(([name, value]) => ({ name, value }));
 
-    return { kpis: { totalPendientes, totalAprobadas, totalRechazadas, totalSoles, totalDolares }, serie: list, estados: estadosData, tipos: tiposData };
+    return { kpis: { totalPendientes, totalAprobadas, totalRechazadas, totalSoles, totalDolares }, serie: list, estados: estadosData };
   }, [liquidacionesAll]);
 
   // -------------------------------
@@ -157,11 +164,10 @@ export default function AprobacionLiquidaciones() {
   };
 
   // -------------------------------
-  // Render loading
+  // Render loading / error
   // -------------------------------
   if (loadingTabla || loadingAll) return <p className="text-center py-10 animate-pulse">Cargando...</p>;
   if (errorTabla || errorAll) return <p className="text-center py-10 text-red-500">{errorTabla || errorAll}</p>;
-  if (!liquidacionesTabla.length) return <p className="text-center py-10">No hay liquidaciones pendientes.</p>;
 
   // -------------------------------
   // Render principal
@@ -211,18 +217,14 @@ export default function AprobacionLiquidaciones() {
           </ResponsiveContainer>
         </ChartWrapped>
 
-        <ChartWrapped title="Distribución por estado" icon={<PieChart size={18} />} className="h-80" tooltipFormatter={radialTooltipFormatter}>
-          <div className="flex flex-col lg:flex-row h-full gap-4 items-stretch">
-            <div className="flex-1 min-h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart innerRadius="10%" outerRadius="95%" data={estados}>
-                  <RadialBar minAngle={10} background clockWise dataKey="value" cornerRadius={8}>
-                    {estados.map((entry, i) => <Cell key={i} fill={STATE_COLORS[entry.name] || "#9ca3af"} />)}
-                  </RadialBar>
-                </RadialBarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        <ChartWrapped title="Distribución por estado" icon={<PieChartIcon size={18} />} className="h-80" tooltipFormatter={radialTooltipFormatter}>
+          <ResponsiveContainer width="100%" height="100%">
+            <RadialBarChart innerRadius="10%" outerRadius="95%" data={estados}>
+              <RadialBar minAngle={10} background clockWise dataKey="value" cornerRadius={8}>
+                {estados.map((entry, i) => <Cell key={i} fill={STATE_COLORS[entry.name] || "#9ca3af"} />)}
+              </RadialBar>
+            </RadialBarChart>
+          </ResponsiveContainer>
         </ChartWrapped>
       </div>
 
@@ -250,7 +252,6 @@ export default function AprobacionLiquidaciones() {
                 hoverFrom="#81c7c7"
                 hoverTo="#5eb0b0"
                 onClick={() => { setSelectedLiquidacion(l); setDetalleModalOpen(true); }}
-                className="flex items-center gap-2 px-3 py-1.5 justify-center"
               >
                 <Eye className="w-4 h-4" /> Detalle
               </Button>
