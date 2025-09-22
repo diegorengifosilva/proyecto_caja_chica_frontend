@@ -200,8 +200,8 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
                   <Table
                     headers={[
                       "Nombre del Archivo",
-                      "N° Doc",
-                      "Tipo",
+                      "N° Documento",
+                      "Tipo de Documento",
                       "Fecha",
                       "RUC",
                       "Razón Social",
@@ -211,17 +211,17 @@ const PresentarDocumentacionModal = ({ open, onClose, solicitud }) => {
                     emptyMessage="No se han agregado comprobantes todavía."
                     renderRow={(doc) => [
                       <span
-                        className="cursor-pointer text-blue-600 hover:underline"
+                        className="cursor-pointer text-blue-600 hover:underline whitespace-pre-wrap break-words text-center"
                         onClick={() => handleAbrirArchivo(doc.archivo)}
                       >
                         {doc.nombre_archivo}
                       </span>,
-                      doc.numero_documento,
-                      doc.tipo_documento,
-                      doc.fecha,
-                      doc.ruc,
-                      doc.razon_social,
-                      doc.total,
+                      <span className="text-center">{doc.numero_documento}</span>,
+                      <span className="text-center whitespace-pre-wrap break-words">{doc.tipo_documento}</span>,
+                      <span className="text-center">{doc.fecha}</span>,
+                      <span className="text-center">{doc.ruc}</span>,
+                      <span className="truncate sm:whitespace-normal max-w-[140px] text-center">{doc.razon_social}</span>,
+                      <span className="text-center">{doc.total}</span>,
                     ]}
                     onDeleteRow={(doc) => handleEliminarDocumento(doc)}
                   />

@@ -139,6 +139,7 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <InfoCard label="N° Solicitud" value={solicitud.numero_solicitud} />
                   <InfoCard label="Fecha" value={solicitud.fecha} />
+                  <InfoCard label="Hora" value={solicitud.hora} />
                   <InfoCard label="Destinatario" value={solicitud.destinatario_nombre || "-"} />
 
                   <InfoCard label="Tipo de Solicitud" value={solicitud.tipo_solicitud} />
@@ -164,6 +165,7 @@ export default function DetallesSolicitud({ open, onClose, solicitudId, solicitu
                   <InfoCard label="N° Cuenta" value={solicitud.numero_cuenta} />
                 </div>
               </TabsContent>
+
 
               <TabsContent value="adjuntos" className="text-gray-500">
                 <p>Aquí se mostrarán los documentos adjuntos.</p>

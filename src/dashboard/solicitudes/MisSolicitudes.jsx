@@ -122,18 +122,11 @@ const MisSolicitudes = ({ open, onClose }) => {
         <div className="overflow-x-auto max-h-[70vh]">
           <Table
             headers={[
-              "N°",
+              "N° Solicitud",
               "Tipo",
-              "S/.",
-              "$",
-              <button
-                key="fecha"
-                onClick={() => setOrdenDesc(!ordenDesc)}
-                className="flex items-center justify-center gap-1 font-semibold hover:text-blue-600"
-              >
-                Fecha
-                {ordenDesc ? <ArrowDown className="w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}
-              </button>,
+              "Monto S/.",
+              "Monto $",
+              "Fecha",
               "Concepto",
               "Estado",
               <span key="accion" className="hidden md:table-cell">Acción</span>,
@@ -149,14 +142,14 @@ const MisSolicitudes = ({ open, onClose }) => {
               </span>,
               s.total_soles ? `S/. ${s.total_soles}` : "-",
               s.total_dolares ? `$ ${s.total_dolares}` : "-",
-              s.fecha,
-              <span className="truncate max-w-[120px] sm:max-w-[200px]">
+              <span className="whitespace-pre-wrap break-words">{s.fecha}</span>,
+              <span className="truncate sm:whitespace-normal max-w-[120px] sm:max-w-[200px]">
                 {s.concepto_gasto ?? "-"}
               </span>,
               <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${
                 STATE_CLASSES[s.estado] || "bg-gray-200 text-gray-700"
-              }`}>
-                {s.estado}
+              } whitespace-pre-wrap break-words`}>
+                {s.estado.split(" ").length > 3 ? s.estado.replace(" ", "\n") : s.estado}
               </span>,
               <div className="hidden md:flex justify-center">
                 <Button
